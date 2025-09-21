@@ -1,0 +1,34 @@
+# ===============================
+# Normalizar finales de línea
+# ===============================
+
+# Archivos de texto -> LF siempre
+* text=auto eol=lf
+
+# Archivos específicos siempre LF
+*.ts     text eol=lf
+*.tsx    text eol=lf
+*.js     text eol=lf
+*.jsx    text eol=lf
+*.json   text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.md     text eol=lf
+*.env    text eol=lf
+
+# Archivos de Windows -> CRLF
+*.bat    text eol=crlf
+*.cmd    text eol=crlf
+
+# ===============================
+# Archivos binarios (no tocar EOL)
+# ===============================
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.pdf    binary
+*.ttf    binary
+*.woff   binary
+*.woff2  binary

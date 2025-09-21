@@ -1,35 +1,44 @@
 {
-  "name": "backend-express-ts-mysql2",
-  "version": "1.0.0",
-  "description": "Backend Express + TS + CORS + MySQL2",
-  "main": "dist/index.js",
-  "type": "module",
-  "scripts": {
-    "build": "tsup src/index.ts --format esm --sourcemap --clean --out-dir dist",
-    "dev": "tsup src/index.ts --format esm --sourcemap --watch --onSuccess \"node dist/index.js\"",
-    "watch": "tsc -w --preserveWatchOutput",
-    "start": "node dist/index.js",
-    "start:dev": "nodemon --watch dist --ext js,map --exec node dist/index.js",
-    "check": "tsc --noEmit",
-    "format": "prettier --write \"{src,tests}/**/*.{ts,js,json,md}\""
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^5.1.0",
-    "mysql2": "^3.11.3"
-  },
-  "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.3",
-    "@types/node": "^20.14.9",
-    "concurrently": "^9.2.0",
-    "nodemon": "^3.1.10",
-    "prettier": "^3.3.3",
-    "tsup": "^8.1.0",
-    "typescript": "^5.6.3"
-  }
+    "name": "backend-express-ts-mysql2",
+    "version": "1.0.0",
+    "description": "Backend Express + TS + CORS + MySQL2",
+    "main": "dist/index.js",
+    "type": "module",
+    "scripts": {
+        "build": "tsup src/index.ts --format esm --sourcemap --clean --out-dir dist",
+        "dev": "tsup src/index.ts --format esm --sourcemap --watch --onSuccess \"node dist/index.js\"",
+        "watch": "tsc -w --preserveWatchOutput",
+        "start": "node dist/index.js",
+        "start:dev": "nodemon --watch dist --ext js,map --exec node dist/index.js",
+        "check": "tsc --noEmit",
+        "format": "prettier --write \"{src,tests}/**/*.{ts,js,json,md}\""
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@types/cors": "^2.8.19",
+        "axios": "^1.12.2",
+        "bcrypt": "^6.0.0",
+        "body-parser": "^2.2.0",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.5",
+        "express": "^5.1.0",
+        "firebase-admin": "^13.5.0",
+        "joi": "^18.0.1",
+        "mysql2": "^3.11.3"
+    },
+    "devDependencies": {
+        "@types/bcrypt": "^6.0.0",
+        "@types/cors": "^2.8.19",
+        "@types/dotenv": "^6.1.1",
+        "@types/express": "^5.0.3",
+        "@types/node": "^20.14.9",
+        "concurrently": "^9.2.0",
+        "nodemon": "^3.1.10",
+        "prettier": "^3.3.3",
+        "tsup": "^8.1.0",
+        "tsx": "^4.20.4",
+        "typescript": "^5.6.3"
+    }
 }
