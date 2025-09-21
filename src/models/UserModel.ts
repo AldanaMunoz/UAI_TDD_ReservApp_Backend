@@ -1,7 +1,7 @@
 import db from "../db/db";
 import { IUser } from "../interfaces/UserInterface";
-import { RowDataPacket, ResultSetHeader } from "mysql2";
-import bcrypt from "bcrypt"; // usamos bcrypt nativo para hashear/validar passwords
+import type { RowDataPacket, ResultSetHeader } from "mysql2";
+import bcrypt from "bcrypt";
 
 const UserModel = {
   /**
