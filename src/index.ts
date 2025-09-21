@@ -19,7 +19,7 @@ async function startServer() {
       res.send("🚀 Servidor Express con TypeScript y MySQL2 funcionando!");
     });
 
-    app.use("/", routes);
+    app.use("/api", routes);
 
     app.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
