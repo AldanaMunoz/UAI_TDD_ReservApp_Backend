@@ -1,0 +1,42 @@
+import Joi from "joi";
+
+// Reutilizá tus validaciones de user y person tal cual
+import { createUserValidationSchema } from "./UserValidation";
+import { createPersonValidationSchema } from "./PersonValidation";
+
+// Reutilizamos los ENUMs de Employee para no duplicar valores
+import { TURNOS, TIPOS } from "./EmployeeValidation";
+
+/**
+ * En el bundle, employee NO debe recibir id_persona.
+ * Solo validamos turno y tipo, y prohibimos explícitamente id_persona.
+ */
+const createEmployeeForBundleSchema = Joi.object({
+    turno: Joi.string()
+        .valid(...TURNOS)
+        .required()
+        .messages({
+            "any.only": `"turno" debe ser uno de: ${TURNOS.join(", ")}`,
+            "any.required": `"turno" es requerido`,
+        }),
+    tipo: Joi.string()
+        .valid(...TIPOS)
+        .required()
+        .messages({
+            "any.only": `"tipo" debe ser uno de: ${TIPOS.join(", ")}`,
+            "any.required": `"tipo" es requerido`,
+        }),
+    id_persona: Joi.forbidden().messages({
+        "any.unknown": `"id_persona" no debe enviarse en el bundle`,
+    }),
+});
+
+export const createUserBundleValidationSchema = Joi.object({
+    user: createUserValidationSchema.required(),
+    person: createPersonValidationSchema.required(),
+    employee: createEmployeeForBundleSchema.required(),
+}).options({
+    abortEarly: false,
+    stripUnknown: true,
+    convert: true,
+});
