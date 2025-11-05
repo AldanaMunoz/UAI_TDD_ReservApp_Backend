@@ -123,6 +123,20 @@ const UserModel = {
     async comparePassword(plain: string, hashed: string): Promise<boolean> {
         return bcrypt.compare(plain, hashed);
     },
+
+    /**
+     * Obtener roles de un usuario
+     */
+    async getUserRoles(userId: number): Promise<string[]> {
+        const [rows] = await db.execute<RowDataPacket[]>(
+            `SELECT r.nombre
+             FROM roles r
+             INNER JOIN usuarios_roles ur ON r.id = ur.id_rol
+             WHERE ur.id_usuario = :userId`,
+            { userId }
+        );
+        return (rows as any[]).map((row: any) => row.nombre);
+    },
 };
 
 export default UserModel;

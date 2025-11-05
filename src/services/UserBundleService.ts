@@ -15,8 +15,9 @@ export async function createUserBundle(payload: {
     user: Pick<IUser, "email" | "password"> & { activo?: 0 | 1 };
     person: Pick<IPerson, "nombre" | "apellido">;
     employee: Pick<IEmployee, "turno" | "tipo">;
+    roles?: number[]; // Array de IDs de roles
 }) {
-    const { user, person, employee } = payload;
+    const { user, person, employee, roles } = payload;
 
     // 1️⃣ Crear usuario en Firebase
     const fb = await admin.auth().createUser({
@@ -36,6 +37,16 @@ export async function createUserBundle(payload: {
 
             const newEmployee = await EmployeeModel.create({ id_persona: newPerson.id!, ...employee } as IEmployee, conn);
             if (!newEmployee) throw new Error("No se pudo crear empleado");
+
+
+            if (roles && roles.length > 0) {
+                for (const roleId of roles) {
+                    await conn.execute(
+                        `INSERT INTO usuarios_roles (id_usuario, id_rol) VALUES (:userId, :roleId)`,
+                        { userId: newUser.id, roleId }
+                    );
+                }
+            }
 
             return { user: newUser, person: newPerson, employee: newEmployee, firebaseUID };
         });

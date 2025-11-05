@@ -186,6 +186,9 @@ export async function loginLocalFirebase(req: Request, res: Response) {
             await UserModel.updatePartial(localUser.id!, { firebaseUID: firebaseLocalId });
         }
 
+        // Obtener roles del usuario
+        const roles = await UserModel.getUserRoles(localUser.id!);
+
         return res.status(200).json({
             message: "Login OK (local + firebase)",
             user: {
@@ -193,6 +196,7 @@ export async function loginLocalFirebase(req: Request, res: Response) {
                 email: localUser.email,
                 activo: localUser.activo,
                 firebaseUID: localUser.firebaseUID || firebaseLocalId,
+                roles,
             },
             firebase: {
                 idToken: fbResp.data.idToken,

@@ -7,5 +7,7 @@ import { attachLocalUser, authenticateFirebase } from "../middleware/AuthMiddlew
 const router = Router();
 
 router.post("/create", authenticateFirebase, attachLocalUser, validationMiddleware(createUserBundleValidationSchema), controllers.createUserBundleController);
+router.get("/roles", authenticateFirebase, attachLocalUser, controllers.getRoles);
+router.get("/users", authenticateFirebase, attachLocalUser, controllers.getAllUsersWithInfo);
 
 export default router;
