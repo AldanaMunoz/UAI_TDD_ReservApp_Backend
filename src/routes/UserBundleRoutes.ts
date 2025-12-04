@@ -6,6 +6,37 @@ import { attachLocalUser, authenticateFirebase } from "../middleware/AuthMiddlew
 
 const router = Router();
 
-router.post("/create", authenticateFirebase, attachLocalUser, validationMiddleware(createUserBundleValidationSchema), controllers.createUserBundleController);
+/**
+ * CREAR UserBundle
+ * POST /user-bundle
+ */
+router.post(
+  "/",
+  validationMiddleware(createUserBundleValidationSchema),
+  controllers.createUserBundleController
+);
+
+/**
+ * ACTUALIZAR UserBundle
+ * PUT /user-bundle/:id
+ */
+router.put(
+  "/:id",
+  authenticateFirebase,
+  attachLocalUser,
+  // TODO: añadir validationMiddleware(updateUserBundleValidationSchema) cuando lo tengas
+  controllers.updateUserBundleController
+);
+
+/**
+ * ELIMINAR UserBundle
+ * DELETE /user-bundle/:id
+ */
+router.delete(
+  "/:id",
+  authenticateFirebase,
+  attachLocalUser,
+  controllers.deleteUserBundleController
+);
 
 export default router;

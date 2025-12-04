@@ -1,125 +1,127 @@
 import db from "../db/db";
 import type { IUser } from "../interfaces/UserInterface";
-import type { RowDataPacket, ResultSetHeader } from "mysql2";
+import type { ResultSetHeader } from "mysql2";
 import bcrypt from "bcrypt";
 
 const UserModel = {
-    /**
-     * Obtener todos los usuarios
-     */
-    async find(): Promise<IUser[]> {
-        const [rows] = await db.execute<RowDataPacket[]>(
+    /** Listar */
+    async find(exec: any = db): Promise<IUser[]> {
+        const [rows] = await exec.execute(
             `SELECT id, email, password, activo, firebaseUID
-       FROM usuarios
-       ORDER BY id DESC`
+             FROM usuarios
+             ORDER BY id DESC`
         );
         return rows as unknown as IUser[];
     },
 
-    /**
-     * Buscar un usuario por su ID
-     */
-    async findById(id: string | number): Promise<IUser | undefined> {
-        const [rows] = await db.execute<RowDataPacket[]>(
+    /** Por ID */
+    async findById(id: number | string, exec: any = db): Promise<IUser | undefined> {
+        const [rows] = await exec.execute(
             `SELECT id, email, password, activo, firebaseUID
-       FROM usuarios
-       WHERE id = :id`,
+             FROM usuarios
+             WHERE id = :id`,
             { id: Number(id) }
         );
         return (rows as any[])[0] as IUser | undefined;
     },
 
-    /**
-     * Buscar un usuario por su email
-     */
-    async findOneByEmail(email: string): Promise<IUser | undefined> {
-        const [rows] = await db.execute<RowDataPacket[]>(
+    /** Por email */
+    async findOneByEmail(email: string, exec: any = db): Promise<IUser | undefined> {
+        const [rows] = await exec.execute(
             `SELECT id, email, password, activo, firebaseUID
-       FROM usuarios
-       WHERE email = :email`,
+             FROM usuarios
+             WHERE email = :email`,
             { email }
         );
         return (rows as any[])[0] as IUser | undefined;
     },
 
-    /**
-     * Buscar un usuario por su firebaseUID
-     */
-    async findOneByFirebaseUID(firebaseUID: string): Promise<IUser | undefined> {
-        const [rows] = await db.execute<RowDataPacket[]>(
+    /** Por Firebase UID */
+    async findOneByFirebaseUID(firebaseUID: string, exec: any = db): Promise<IUser | undefined> {
+        const [rows] = await exec.execute(
             `SELECT id, email, password, activo, firebaseUID
-       FROM usuarios
-       WHERE firebaseUID = :firebaseUID`,
+             FROM usuarios
+             WHERE firebaseUID = :firebaseUID`,
             { firebaseUID }
         );
         return (rows as any[])[0] as IUser | undefined;
     },
 
-    /**
-     * Crear un nuevo usuario en la base de datos
-     * - Hashea la contraseña antes de guardarla
-     */
+    /** Crear */
     async create(user: IUser, exec: any = db): Promise<IUser | undefined> {
         const hashed = await bcrypt.hash(user.password, 10);
-        const [res] = (await exec.execute(
+
+        const [res] = await exec.execute(
             `INSERT INTO usuarios (email, password, activo, firebaseUID)
-       VALUES (:email, :password, :activo, :firebaseUID)`,
+             VALUES (:email, :password, :activo, :firebaseUID)`,
             {
                 email: user.email,
                 password: hashed,
                 activo: user.activo ?? 1,
                 firebaseUID: user.firebaseUID ?? null,
             }
-        )) as [ResultSetHeader];
-        const [rows] = (await exec.execute(
+        );
+
+        const insertId = (res as ResultSetHeader).insertId;
+
+        const [rows] = await exec.execute(
             `SELECT id, email, password, activo, firebaseUID
-       FROM usuarios WHERE id = :id`,
-            { id: (res as ResultSetHeader).insertId }
-        )) as [RowDataPacket[]];
+             FROM usuarios
+             WHERE id = :id`,
+            { id: insertId }
+        );
+
         return (rows as any[])[0] as IUser | undefined;
     },
 
-    /**
-     * Actualizar un usuario parcialmente
-     */
-    async updatePartial(id: string | number, patch: Partial<IUser>): Promise<IUser | undefined> {
-        const allowed = ["email", "password", "activo", "firebaseUID"] as const;
+    /** Update parcial */
+    async updatePartial(
+        id: number | string,
+        patch: Partial<IUser>,
+        exec: any = db
+    ): Promise<IUser | undefined> {
+        const allowed = ["email", "password", "activo", "firebaseUID"];
+        const entries = Object.entries(patch).filter(
+            ([k, v]) => allowed.includes(k) && v !== undefined
+        );
 
-        const entries = Object.entries(patch).filter(([k, v]) => allowed.includes(k as any) && v !== undefined);
-        if (!entries.length) return this.findById(id);
+        if (!entries.length) return this.findById(id, exec);
 
         if (patch.password) {
             patch.password = await bcrypt.hash(patch.password, 10);
         }
 
         const setSql = entries.map(([k]) => `${k} = :${k}`).join(", ");
-        const params: any = Object.fromEntries(entries);
-        params.id = Number(id);
+        const params = Object.fromEntries(entries);
+        (params as any).id = Number(id);
 
-        await db.execute<ResultSetHeader>(`UPDATE usuarios SET ${setSql} WHERE id = :id`, params);
+        await exec.execute(
+            `UPDATE usuarios SET ${setSql} WHERE id = :id`,
+            params
+        );
 
-        return this.findById(id);
+        return this.findById(id, exec);
     },
 
-    /**
-     * Eliminar un usuario físicamente de la DB
-     */
-    async hardDelete(id: string | number): Promise<boolean> {
-        const [res] = await db.execute<ResultSetHeader>(`DELETE FROM usuarios WHERE id = :id`, { id: Number(id) });
+    /** Hard delete */
+    async hardDelete(id: number | string, exec: any = db): Promise<boolean> {
+        const [res] = await exec.execute(
+            `DELETE FROM usuarios WHERE id = :id`,
+            { id: Number(id) }
+        );
         return (res as ResultSetHeader).affectedRows > 0;
     },
 
-    /**
-     * Soft delete = cambia el campo activo (0 = inactivo, 1 = activo)
-     */
-    async setActivo(id: string | number, activo: 0 | 1): Promise<IUser | undefined> {
-        await db.execute<ResultSetHeader>(`UPDATE usuarios SET activo = :activo WHERE id = :id`, { id: Number(id), activo });
-        return this.findById(id);
+    /** Soft delete */
+    async setActivo(id: number | string, activo: 0 | 1, exec: any = db): Promise<IUser | undefined> {
+        await exec.execute(
+            `UPDATE usuarios SET activo = :activo WHERE id = :id`,
+            { id: Number(id), activo }
+        );
+        return this.findById(id, exec);
     },
 
-    /**
-     * Comparar una contraseña en texto plano con el hash almacenado
-     */
+    /** Comparar password */
     async comparePassword(plain: string, hashed: string): Promise<boolean> {
         return bcrypt.compare(plain, hashed);
     },

@@ -1,7 +1,7 @@
 import Joi from "joi";
 
 /** Ajustá tus opciones de ENUM acá (una sola fuente de verdad) */
-export const TURNOS = ["manana", "tarde", "noche"] as const;
+export const TURNOS = ["mañana", "tarde", "noche"] as const;
 export const TIPOS = ["interno", "externo"] as const;
 
 /** Alta (POST /empleados) */
