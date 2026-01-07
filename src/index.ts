@@ -3,9 +3,17 @@ import express from "express";
 import cors from "cors";
 import { connect } from "./db/db"; // 👈 importamos la función connect
 import routes from "./routes";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./docs/swagger";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.get("/docs.json", (_req, res) => {
+    res.json(swaggerSpec);
+});
 
 // Middlewares globales
 app.use(

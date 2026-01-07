@@ -1,6 +1,5 @@
 import express from "express";
 import controllers from "../controllers/UserController";
-import { authenticateFirebase, attachLocalUser } from "../middleware/AuthMiddleware";
 import validationMiddleware from "../middleware/ValidatorMiddleware";
 import { 
     createUserValidationSchema,
@@ -11,75 +10,213 @@ import {
 const UserRoutes = express.Router();
 
 /* ===========================================================
-   CRUD (PROTEGIDAS CON AUTH HÍBRIDO)
+   CRUD (PROTEGIDAS POR AUTH EN ROUTER PRINCIPAL)
    =========================================================== */
 
 /**
- * POST /users
- * Crear usuario (requiere auth)
+ * @openapi
+ * /users:
+ *   get:
+ *     summary: Listar todos los usuarios
+ *     tags:
+ *       - Users
+ *     responses:
+ *       200:
+ *         description: Lista de usuarios
+ *       500:
+ *         description: Error interno al obtener usuarios
+ */
+UserRoutes.get(
+    "/",
+    controllers.getAllUsers
+);
+
+/**
+ * @openapi
+ * /users/{id}:
+ *   get:
+ *     summary: Obtener un usuario por ID
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Usuario encontrado
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno al obtener usuario
+ */
+UserRoutes.get(
+    "/:id",
+    controllers.getUserById
+);
+
+/**
+ * @openapi
+ * /users:
+ *   post:
+ *     summary: Crear un usuario (Firebase + DB local)
+ *     description: >
+ *       Crea el usuario en Firebase y luego en la base de datos local.
+ *       Si falla la creación en DB, revierte el alta en Firebase.
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               activo:
+ *                 type: integer
+ *                 enum: [0, 1]
+ *                 description: Estado del usuario (1 = activo, 0 = inactivo)
+ *             required:
+ *               - email
+ *               - password
+ *     responses:
+ *       201:
+ *         description: Usuario registrado en Firebase y DB local
+ *       400:
+ *         description: email y password son requeridos
+ *       409:
+ *         description: El email o firebaseUID ya existe en la DB local
+ *       500:
+ *         description: Error interno al registrar usuario (Firebase o DB)
  */
 UserRoutes.post(
     "/",
-    authenticateFirebase,
-    attachLocalUser,
     validationMiddleware(createUserValidationSchema),
     controllers.createUser
 );
 
 /**
- * GET /users
- * Listar todos los usuarios
- */
-UserRoutes.get(
-    "/",
-    authenticateFirebase,
-    attachLocalUser,
-    controllers.getAllUsers
-);
-
-/**
- * GET /users/:id
- * Obtener usuario por ID
- */
-UserRoutes.get(
-    "/:id",
-    authenticateFirebase,
-    attachLocalUser,
-    controllers.getUserById
-);
-
-/**
- * PATCH /users/:id
- * Update parcial
+ * @openapi
+ * /users/{id}:
+ *   patch:
+ *     summary: Actualizar parcialmente un usuario
+ *     description: >
+ *       Actualiza campos del usuario local. Puede producir conflicto
+ *       si el email o firebaseUID ya existen en otro usuario.
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               activo:
+ *                 type: integer
+ *                 enum: [0, 1]
+ *               firebaseUID:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Usuario actualizado correctamente
+ *       404:
+ *         description: Usuario no encontrado o sin cambios
+ *       409:
+ *         description: Email o firebaseUID ya existe
+ *       500:
+ *         description: Error interno al actualizar usuario
  */
 UserRoutes.patch(
     "/:id",
-    authenticateFirebase,
-    attachLocalUser,
     validationMiddleware(updateUserValidationSchema),
     controllers.updateUser
 );
 
 /**
- * PATCH /users/:id/activo
- * Soft delete (toggle activo)
+ * @openapi
+ * /users/{id}/activo:
+ *   patch:
+ *     summary: Activar o desactivar un usuario (soft delete)
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               activo:
+ *                 type: integer
+ *                 enum: [0, 1]
+ *                 description: 1 para activar, 0 para desactivar
+ *             required:
+ *               - activo
+ *     responses:
+ *       200:
+ *         description: Estado del usuario actualizado (soft delete)
+ *       400:
+ *         description: activo debe ser 0 o 1
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno al actualizar estado del usuario
  */
 UserRoutes.patch(
     "/:id/activo",
-    authenticateFirebase,
-    attachLocalUser,
     validationMiddleware(softDeleteValidationSchema),
     controllers.softDeleteUser
 );
 
 /**
- * DELETE /users/:id
- * Hard delete (eliminación física)
+ * @openapi
+ * /users/{id}:
+ *   delete:
+ *     summary: Eliminación física de un usuario (hard delete)
+ *     description: >
+ *       Borra el usuario en Firebase (si tiene firebaseUID)
+ *       y luego lo elimina de la DB local.
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Usuario eliminado en Firebase y DB local
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno al eliminar usuario
  */
 UserRoutes.delete(
     "/:id",
-    authenticateFirebase,
-    attachLocalUser,
     controllers.hardDeleteUser
 );
 

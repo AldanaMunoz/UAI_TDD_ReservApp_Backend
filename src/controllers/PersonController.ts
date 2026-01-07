@@ -78,25 +78,7 @@ export async function updatePerson(req: Request, res: Response) {
     }
 }
 
-/** PATCH /personas/:id/activo  (soft delete / reactivar) */
-export async function softDeletePerson(req: Request, res: Response) {
-    try {
-        const id = Number(req.params.id);
-        const { activo } = req.body as { activo?: 0 | 1 };
 
-        if (activo !== 0 && activo !== 1) {
-            return res.status(400).json({ message: "activo must be 0 or 1" });
-        }
-
-        const person = await PersonModel.setActivo(id, activo);
-        if (!person) return res.status(404).json({ message: "Person not found" });
-
-        const action = activo === 0 ? "soft deleted" : "reactivated";
-        return res.status(200).json({ message: `Person ${action}`, person });
-    } catch (error) {
-        return res.status(500).json({ message: "Error updating activo", error });
-    }
-}
 
 /** DELETE /personas/hard/:id */
 export async function hardDeletePerson(req: Request, res: Response) {
@@ -118,6 +100,5 @@ export default {
     getPersonById,
     createPerson,
     updatePerson,
-    softDeletePerson,
     hardDeletePerson,
 };

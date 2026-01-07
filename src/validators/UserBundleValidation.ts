@@ -1,11 +1,11 @@
 import Joi from "joi";
 
 // Reutilizá tus validaciones de user y person tal cual
-import { createUserValidationSchema } from "./UserValidation";
-import { createPersonValidationSchema } from "./PersonValidation";
+import { createUserValidationSchema, updateUserValidationSchema } from "./UserValidation";
+import { createPersonValidationSchema, updatePersonValidationSchema } from "./PersonValidation";
 
 // Reutilizamos los ENUMs de Employee para no duplicar valores
-import { TURNOS, TIPOS } from "./EmployeeValidation";
+import { TURNOS, TIPOS, updateEmployeeValidationSchema } from "./EmployeeValidation";
 
 /**
  * En el bundle, employee NO debe recibir id_persona.
@@ -40,3 +40,15 @@ export const createUserBundleValidationSchema = Joi.object({
     stripUnknown: true,
     convert: true,
 });
+
+export const updateUserBundleValidationSchema = Joi.object({
+    user: updateUserValidationSchema.optional(),
+    person: updatePersonValidationSchema.optional(),
+    employee: updateEmployeeValidationSchema.optional(),
+})
+    .min(1) // obliga a que venga al menos un bloque
+    .options({
+        abortEarly: false,
+        stripUnknown: true,
+        convert: true,
+    });

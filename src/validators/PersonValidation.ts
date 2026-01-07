@@ -46,14 +46,3 @@ export const updatePersonValidationSchema = Joi.object({
         convert: true,
     });
 
-/** Soft delete / toggle activo (PATCH /personas/:id/activo) */
-export const softDeleteValidationSchema = Joi.object({
-    activo: Joi.number().valid(0, 1).required().messages({
-        "any.required": `"activo" es requerido`,
-        "any.only": `"activo" debe ser 0 o 1`,
-    }),
-}).options({
-    abortEarly: false,
-    stripUnknown: true,
-    convert: true,
-});

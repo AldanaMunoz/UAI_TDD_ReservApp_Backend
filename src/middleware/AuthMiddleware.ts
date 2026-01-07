@@ -50,7 +50,7 @@ export async function attachLocalUser(req: Request, res: Response, next: NextFun
             activo: localUser.activo,
         };
 
-        // Vincular firebaseUID si aún no lo tenía (primer login, migraciones, etc.)
+        // Vincular firebaseUID si aún no lo tenía
         if (!localUser.firebaseUID) {
             await UserModel.updatePartial(localUser.id!, { firebaseUID: firebase.uid });
             (req as any).user.firebaseUID = firebase.uid;
@@ -58,6 +58,6 @@ export async function attachLocalUser(req: Request, res: Response, next: NextFun
 
         next();
     } catch (err: any) {
-        return res.status(500).json({ message: "Error resolviendo usuario local", error: err?.message || err });
+        return res.status(500).json({ message: "Error: ", error: err?.message || err });
     }
 }
