@@ -9,10 +9,6 @@ import {
 
 const UserRoutes = express.Router();
 
-/* ===========================================================
-   CRUD (PROTEGIDAS POR AUTH EN ROUTER PRINCIPAL)
-   =========================================================== */
-
 /**
  * @openapi
  * /users:

@@ -1,19 +1,17 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import { connect } from "./db/db"; // 👈 importamos la función connect
+import { connect } from "./db/db";
 import routes from "./routes";
-import swaggerUi from "swagger-ui-express";
-import { swaggerSpec } from "./docs/swagger";
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './docs/swagger';
+
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-app.get("/docs.json", (_req, res) => {
-    res.json(swaggerSpec);
-});
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/docs.json', (_req, res) => res.type('application/json').json(swaggerSpec));
 
 // Middlewares globales
 app.use(
@@ -45,7 +43,7 @@ async function startServer() {
 
         // Ruta raíz
         app.get("/", (_req, res) => {
-            res.send("🚀 Servidor Express con TypeScript y MySQL2 funcionando!");
+            res.send("EXITO. Servidor Express con TypeScript y MySQL2 funcionando!");
         });
 
         // Todas las rutas desde routes/index.ts
@@ -53,10 +51,10 @@ async function startServer() {
 
         // Iniciar servidor
         app.listen(PORT, () => {
-            console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+            console.log(`EXITO. Servidor corriendo en http://localhost:${PORT}`);
         });
     } catch (error) {
-        console.error("❌ No se pudo iniciar el servidor:", error);
+        console.error("ERROR. No se pudo iniciar el servidor:", error);
         process.exit(1);
     }
 }
