@@ -10,5 +10,5 @@ export const updateRolePermissionValidationSchema = Joi.object({
   permissionId: Joi.number().integer().positive().optional(),
 })
   .min(1)
-  .messages({ "object.min": "You must send at least one field to update" })
+  .messages({ "object.min": "Debes enviar al menos un campo para actualizar" })
   .options({ abortEarly: false, stripUnknown: true, convert: true });

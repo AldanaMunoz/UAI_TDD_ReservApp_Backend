@@ -14,5 +14,5 @@ export const updateWeeklyPlanningValidationSchema = Joi.object({
   date: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).optional(),
 })
   .min(1)
-  .messages({ "object.min": "You must send at least one field to update" })
+  .messages({ "object.min": "Debes enviar al menos un campo para actualizar" })
   .options({ abortEarly: false, stripUnknown: true, convert: true });
