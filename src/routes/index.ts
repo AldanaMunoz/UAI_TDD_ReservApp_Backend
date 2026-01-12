@@ -1,52 +1,46 @@
 import { Router } from "express";
 
-// Importación estática de todas las rutas
-import {
-  attachLocalUser,
-  authenticateFirebase,
-} from "../middleware/AuthMiddleware";
-import UserRoutes from "./UserRoutes";
-import PersonRoutes from "./PersonRoutes";
-import EmployeeRoutes from "./EmployeeRoutes";
-import UserBundleRoutes from "./UserBundleRoutes";
+import { attachLocalUser, authenticateFirebase } from "../middleware/AuthMiddleware";
+
 import AuthRoutes from "./AuthRoutes";
-import FoodRoutes from "./FoodRoutes";
-import FoodTypeRoutes from "./FoodTypeRoutes";
-import SeasonRoutes from "./SeasonRoutes";
+import EmployeeRoutes from "./EmployeeRoutes";
 import FoodRestrictionLinkRoutes from "./FoodRestrictionLinkRoutes";
 import FoodRestrictionRoutes from "./FoodRestrictionRoutes";
-import RoleRoutes from "./RoleRoutes";
+import FoodRoutes from "./FoodRoutes";
+import FoodTypeRoutes from "./FoodTypeRoutes";
 import PermissionRoutes from "./PermissionRoutes";
+import PersonRoutes from "./PersonRoutes";
+import PriceHistoryRoutes from "./PriceHistoryRoutes";
 import RolePermissionRoutes from "./RolePermissionRoutes";
+import RoleRoutes from "./RoleRoutes";
+import SeasonRoutes from "./SeasonRoutes";
+import UserBundleRoutes from "./UserBundleRoutes";
 import UserRoleRoutes from "./UserRoleRoutes";
+import UserRoutes from "./UserRoutes";
+import WeeklyPlanningFoodRoutes from "./WeeklyPlanningFoodRoutes";
+import WeeklyPlanningRoutes from "./WeeklyPlanningRoutes";
 
 const router = Router();
 
-// Enrutador principal de la API
-router.use("/auth", AuthRoutes); // Rutas públicas: login + register
+// Rutas públicas
+router.use("/auth", AuthRoutes);
 
-// ================================
-// Rutas protegidas por Firebase
-// ================================
-
-// Todo lo que esté dentro de estos módulos requiere:
-// 1) authenticateFirebase
-// 2) attachLocalUser
-
-router.use("/users", authenticateFirebase, attachLocalUser, UserRoutes);
-router.use("/persons", authenticateFirebase, attachLocalUser, PersonRoutes);
+// Rutas protegidas
 router.use("/employees", authenticateFirebase, attachLocalUser, EmployeeRoutes);
-router.use("/user-bundle", authenticateFirebase, attachLocalUser, UserBundleRoutes);
-router.use("/foods", authenticateFirebase, attachLocalUser, FoodRoutes);
-router.use("/food-types", authenticateFirebase, attachLocalUser, FoodTypeRoutes);
-router.use("/seasons", authenticateFirebase, attachLocalUser, SeasonRoutes);
-router.use("/food-restrictions", authenticateFirebase, attachLocalUser, FoodRestrictionRoutes);
 router.use("/food-restriction-links", authenticateFirebase, attachLocalUser, FoodRestrictionLinkRoutes);
-router.use("/roles", authenticateFirebase, attachLocalUser, RoleRoutes);
+router.use("/food-restrictions", authenticateFirebase, attachLocalUser, FoodRestrictionRoutes);
+router.use("/food-types", authenticateFirebase, attachLocalUser, FoodTypeRoutes);
+router.use("/foods", authenticateFirebase, attachLocalUser, FoodRoutes);
 router.use("/permissions", authenticateFirebase, attachLocalUser, PermissionRoutes);
+router.use("/persons", authenticateFirebase, attachLocalUser, PersonRoutes);
+router.use("/price-history", authenticateFirebase, attachLocalUser, PriceHistoryRoutes);
 router.use("/role-permissions", authenticateFirebase, attachLocalUser, RolePermissionRoutes);
+router.use("/roles", authenticateFirebase, attachLocalUser, RoleRoutes);
+router.use("/seasons", authenticateFirebase, attachLocalUser, SeasonRoutes);
+router.use("/user-bundle", authenticateFirebase, attachLocalUser, UserBundleRoutes);
 router.use("/user-roles", authenticateFirebase, attachLocalUser, UserRoleRoutes);
-
-
+router.use("/users", authenticateFirebase, attachLocalUser, UserRoutes);
+router.use("/weekly-planning-foods", authenticateFirebase, attachLocalUser, WeeklyPlanningFoodRoutes);
+router.use("/weekly-plannings", authenticateFirebase, attachLocalUser, WeeklyPlanningRoutes);
 
 export default router;
