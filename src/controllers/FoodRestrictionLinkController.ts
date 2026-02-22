@@ -10,7 +10,7 @@ export async function getAllFoodRestrictionLinks(_req: Request, res: Response) {
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Error fetching food restriction links", error });
+      .json({ message: "Error al obtener links de restricciones de comida", error });
   }
 }
 
@@ -22,14 +22,14 @@ export async function getFoodRestrictionLinkById(req: Request, res: Response) {
     if (!item) {
       return res
         .status(404)
-        .json({ message: "Food restriction link not found" });
+        .json({ message: "Link de restricción de comida no encontrado" });
     }
 
     return res.status(200).json(item);
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Error fetching food restriction link", error });
+      .json({ message: "Error al obtener link de restricción de comida", error });
   }
 }
 
@@ -44,7 +44,7 @@ export async function getFoodRestrictionLinksByFoodId(
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Error fetching restrictions for food", error });
+      .json({ message: "Error al obtener restricciones para la comida", error });
   }
 }
 
@@ -60,11 +60,11 @@ export async function createFoodRestrictionLink(req: Request, res: Response) {
     if (error?.code === "ER_DUP_ENTRY" || error?.errno === 1062) {
       return res
         .status(409)
-        .json({ message: "Link already exists", error: msg });
+        .json({ message: "Link ya existe", error: msg });
     }
 
     return res.status(500).json({
-      message: "Error creating food restriction link",
+      message: "Error al crear link de restricción de comida",
       error: msg,
     });
   }
@@ -80,23 +80,23 @@ export async function updateFoodRestrictionLink(req: Request, res: Response) {
     if (!updated) {
       return res
         .status(404)
-        .json({ message: "Food restriction link not found or no changes" });
+        .json({ message: "Link de restricción de comida no encontrado o sin cambios" });
     }
 
     return res
       .status(200)
-      .json({ message: "Food restriction link updated", link: updated });
+      .json({ message: "Link de restricción de comida actualizado", link: updated });
   } catch (error: any) {
     const msg = error?.message || String(error);
     if (error?.code === "ER_DUP_ENTRY" || error?.errno === 1062) {
       return res.status(409).json({
-        message: "Another link with same pair already exists",
+        message: "Otro link con el mismo par ya existe",
         error: msg,
       });
     }
 
     return res.status(500).json({
-      message: "Error updating food restriction link",
+      message: "Error al actualizar link de restricción de comida",
       error: msg,
     });
   }
@@ -113,15 +113,15 @@ export async function hardDeleteFoodRestrictionLink(
     if (!ok) {
       return res
         .status(404)
-        .json({ message: "Food restriction link not found" });
+        .json({ message: "Link de restricción de comida no encontrado" });
     }
 
     return res
       .status(200)
-      .json({ message: "Food restriction link hard deleted" });
+      .json({ message: "Link de restricción de comida eliminado permanentemente" });
   } catch (error) {
     return res.status(500).json({
-      message: "Error hard deleting food restriction link",
+      message: "Error al eliminar permanentemente link de restricción de comida",
       error,
     });
   }
@@ -143,15 +143,15 @@ export async function hardDeleteFoodRestrictionLinkByPair(
     if (!ok) {
       return res
         .status(404)
-        .json({ message: "Food restriction link not found" });
+        .json({ message: "Link de restricción de comida no encontrado" });
     }
 
     return res
       .status(200)
-      .json({ message: "Food restriction link hard deleted (by pair)" });
+      .json({ message: "Link de restricción de comida eliminado permanentemente (por par)" });
   } catch (error) {
     return res.status(500).json({
-      message: "Error hard deleting food restriction link",
+      message: "Error al eliminar permanentemente link de restricción de comida",
       error,
     });
   }

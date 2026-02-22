@@ -13,7 +13,7 @@ export async function getAllFoodTypes(_req: Request, res: Response) {
         const data = await FoodTypeModel.find();
         return res.status(200).json(data);
     } catch (error) {
-        return res.status(500).json({ message: "Error fetching food types", error });
+        return res.status(500).json({ message: "Error al obtener tipos de comida", error });
     }
 }
 
@@ -23,11 +23,11 @@ export async function getFoodTypeById(req: Request, res: Response) {
         const id = Number(req.params.id);
         const foodType = await FoodTypeModel.findById(id);
         if (!foodType) {
-            return res.status(404).json({ message: "Food type not found" });
+            return res.status(404).json({ message: "Tipo de comida no encontrado" });
         }
         return res.status(200).json(foodType);
     } catch (error) {
-        return res.status(500).json({ message: "Error fetching food type", error });
+        return res.status(500).json({ message: "Error al obtener tipo de comida", error });
     }
 }
 
@@ -37,7 +37,7 @@ export async function createFoodType(req: Request, res: Response) {
         const { name, description } = req.body as Partial<IFoodType>;
 
         if (!name) {
-            return res.status(400).json({ message: "name is required" });
+            return res.status(400).json({ message: "name es obligatorio" });
         }
 
         const created = await FoodTypeModel.create({
@@ -48,7 +48,7 @@ export async function createFoodType(req: Request, res: Response) {
         return res.status(201).json(created);
     } catch (error: any) {
         return res.status(500).json({
-            message: "Error creating food type",
+            message: "Error al crear tipo de comida",
             error: error?.message || error,
         });
     }
@@ -64,15 +64,15 @@ export async function updateFoodType(req: Request, res: Response) {
         if (!updated) {
             return res
                 .status(404)
-                .json({ message: "Food type not found or no changes" });
+                .json({ message: "Tipo de comida no encontrado o sin cambios" });
         }
 
         return res
             .status(200)
-            .json({ message: "Food type updated", foodType: updated });
+            .json({ message: "Tipo de comida actualizado", foodType: updated });
     } catch (error: any) {
         return res.status(500).json({
-            message: "Error updating food type",
+            message: "Error al actualizar tipo de comida",
             error: error?.message || error,
         });
     }
@@ -84,12 +84,12 @@ export async function hardDeleteFoodType(req: Request, res: Response) {
         const id = Number(req.params.id);
         const ok = await FoodTypeModel.hardDelete(id);
         if (!ok) {
-            return res.status(404).json({ message: "Food type not found" });
+            return res.status(404).json({ message: "Tipo de comida no encontrado" });
         }
-        return res.status(200).json({ message: "Food type hard deleted" });
+        return res.status(200).json({ message: "Tipo de comida eliminado permanentemente" });
     } catch (error) {
         return res.status(500).json({
-            message: "Error hard deleting food type",
+            message: "Error al eliminar permanentemente tipo de comida",
             error,
         });
     }

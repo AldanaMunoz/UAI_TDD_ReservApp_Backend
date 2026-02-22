@@ -14,7 +14,7 @@ export async function getAllRoles(_req: Request, res: Response) {
     const data = await RoleModel.find();
     return res.status(200).json(data);
   } catch (error) {
-    return res.status(500).json({ message: "Error fetching roles", error });
+    return res.status(500).json({ message: "Error al obtener roles", error });
   }
 }
 
@@ -22,10 +22,10 @@ export async function getRoleById(req: Request, res: Response) {
   try {
     const id = Number(req.params.id);
     const item = await RoleModel.findById(id);
-    if (!item) return res.status(404).json({ message: "Role not found" });
+    if (!item) return res.status(404).json({ message: "Rol no encontrado" });
     return res.status(200).json(item);
   } catch (error) {
-    return res.status(500).json({ message: "Error fetching role", error });
+    return res.status(500).json({ message: "Error al obtener rol", error });
   }
 }
 
@@ -37,13 +37,13 @@ export async function createRole(req: Request, res: Response) {
   } catch (error: any) {
     if (isDuplicate(error)) {
       return res.status(409).json({
-        message: "Role name already exists",
+        message: "El nombre del rol ya existe",
         error: error?.message || error,
       });
     }
     return res
       .status(500)
-      .json({ message: "Error creating role", error: error?.message || error });
+      .json({ message: "Error al crear rol", error: error?.message || error });
   }
 }
 
@@ -53,19 +53,19 @@ export async function updateRole(req: Request, res: Response) {
     const patch: Partial<IRole> = { ...req.body };
 
     const updated = await RoleModel.updatePartial(id, patch);
-    if (!updated) return res.status(404).json({ message: "Role not found" });
+    if (!updated) return res.status(404).json({ message: "Rol no encontrado" });
 
-    return res.status(200).json({ message: "Role updated", role: updated });
+    return res.status(200).json({ message: "Rol actualizado", role: updated });
   } catch (error: any) {
     if (isDuplicate(error)) {
       return res.status(409).json({
-        message: "Role name already exists",
+        message: "El nombre del rol ya existe",
         error: error?.message || error,
       });
     }
     return res
       .status(500)
-      .json({ message: "Error updating role", error: error?.message || error });
+      .json({ message: "Error al actualizar rol", error: error?.message || error });
   }
 }
 
@@ -73,18 +73,18 @@ export async function hardDeleteRole(req: Request, res: Response) {
   try {
     const id = Number(req.params.id);
     const ok = await RoleModel.hardDelete(id);
-    if (!ok) return res.status(404).json({ message: "Role not found" });
-    return res.status(200).json({ message: "Role hard deleted" });
+    if (!ok) return res.status(404).json({ message: "Rol no encontrado" });
+    return res.status(200).json({ message: "Rol eliminado permanentemente" });
   } catch (error: any) {
     if (isFkConflict(error)) {
       return res.status(409).json({
         message:
-          "Cannot delete role because it is referenced by usuarios_roles",
+          "No se puede eliminar el rol porque está referenciado por usuarios_roles",
         error: error?.message || error,
       });
     }
     return res.status(500).json({
-      message: "Error hard deleting role",
+      message: "Error al eliminar permanentemente rol",
       error: error?.message || error,
     });
   }

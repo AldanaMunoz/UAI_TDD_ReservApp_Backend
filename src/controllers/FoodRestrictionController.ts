@@ -14,7 +14,7 @@ export async function getAllFoodRestrictions(_req: Request, res: Response) {
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Error fetching restrictions", error });
+      .json({ message: "Error al obtener restricciones", error });
   }
 }
 
@@ -24,14 +24,14 @@ export async function getFoodRestrictionById(req: Request, res: Response) {
     const item = await FoodRestrictionModel.findById(id);
 
     if (!item) {
-      return res.status(404).json({ message: "Food restriction not found" });
+      return res.status(404).json({ message: "Restricción de comida no encontrada" });
     }
 
     return res.status(200).json(item);
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Error fetching restriction", error });
+      .json({ message: "Error al obtener restricción", error });
   }
 }
 
@@ -42,7 +42,7 @@ export async function createFoodRestriction(req: Request, res: Response) {
     return res.status(201).json(created);
   } catch (error: any) {
     return res.status(500).json({
-      message: "Error creating food restriction",
+      message: "Error al crear restricción de comida",
       error: error?.message || error,
     });
   }
@@ -56,17 +56,17 @@ export async function updateFoodRestriction(req: Request, res: Response) {
     const updated = await FoodRestrictionModel.updatePartial(id, patch);
 
     if (!updated) {
-      return res
+        return res
         .status(404)
-        .json({ message: "Food restriction not found or no changes" });
+        .json({ message: "Restricción de comida no encontrada o sin cambios" });
     }
 
     return res
-      .status(200)
-      .json({ message: "Food restriction updated", restriction: updated });
+        .status(200)
+        .json({ message: "Restricción de comida actualizada", restriction: updated });
   } catch (error: any) {
     return res.status(500).json({
-      message: "Error updating food restriction",
+      message: "Error al actualizar restricción de comida",
       error: error?.message || error,
     });
   }
@@ -78,13 +78,13 @@ export async function hardDeleteFoodRestriction(req: Request, res: Response) {
     const ok = await FoodRestrictionModel.hardDelete(id);
 
     if (!ok) {
-      return res.status(404).json({ message: "Food restriction not found" });
+      return res.status(404).json({ message: "Restricción de comida no encontrada" });
     }
 
-    return res.status(200).json({ message: "Food restriction hard deleted" });
+    return res.status(200).json({ message: "Restricción de comida eliminada permanentemente" });
   } catch (error) {
     return res.status(500).json({
-      message: "Error hard deleting food restriction",
+      message: "Error al eliminar permanentemente restricción de comida",
       error,
     });
   }

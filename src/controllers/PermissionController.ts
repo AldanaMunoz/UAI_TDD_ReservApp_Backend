@@ -16,7 +16,7 @@ export async function getAllPermissions(_req: Request, res: Response) {
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Error fetching permissions", error });
+      .json({ message: "Error al obtener permisos", error });
   }
 }
 
@@ -24,12 +24,12 @@ export async function getPermissionById(req: Request, res: Response) {
   try {
     const id = Number(req.params.id);
     const item = await PermissionModel.findById(id);
-    if (!item) return res.status(404).json({ message: "Permission not found" });
+    if (!item) return res.status(404).json({ message: "Permiso no encontrado" });
     return res.status(200).json(item);
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Error fetching permission", error });
+      .json({ message: "Error al obtener permiso", error });
   }
 }
 
@@ -41,12 +41,12 @@ export async function createPermission(req: Request, res: Response) {
   } catch (error: any) {
     if (isDuplicate(error)) {
       return res.status(409).json({
-        message: "Permission name already exists",
+        message: "El nombre del permiso ya existe",
         error: error?.message || error,
       });
     }
     return res.status(500).json({
-      message: "Error creating permission",
+      message: "Error al crear permiso",
       error: error?.message || error,
     });
   }
@@ -59,20 +59,20 @@ export async function updatePermission(req: Request, res: Response) {
 
     const updated = await PermissionModel.updatePartial(id, patch);
     if (!updated)
-      return res.status(404).json({ message: "Permission not found" });
+      return res.status(404).json({ message: "Permiso no encontrado" });
 
     return res
       .status(200)
-      .json({ message: "Permission updated", permission: updated });
+      .json({ message: "Permiso actualizado", permission: updated });
   } catch (error: any) {
     if (isDuplicate(error)) {
       return res.status(409).json({
-        message: "Permission name already exists",
+        message: "El nombre del permiso ya existe",
         error: error?.message || error,
       });
     }
     return res.status(500).json({
-      message: "Error updating permission",
+      message: "Error al actualizar permiso",
       error: error?.message || error,
     });
   }
@@ -82,18 +82,18 @@ export async function hardDeletePermission(req: Request, res: Response) {
   try {
     const id = Number(req.params.id);
     const ok = await PermissionModel.hardDelete(id);
-    if (!ok) return res.status(404).json({ message: "Permission not found" });
-    return res.status(200).json({ message: "Permission hard deleted" });
+    if (!ok) return res.status(404).json({ message: "Permiso no encontrado" });
+    return res.status(200).json({ message: "Permiso eliminado permanentemente" });
   } catch (error: any) {
     if (isFkConflict(error)) {
       return res.status(409).json({
         message:
-          "Cannot delete permission because it is referenced by roles_permisos",
+          "No se puede eliminar el permiso porque está referenciado por roles_permisos",
         error: error?.message || error,
       });
     }
     return res.status(500).json({
-      message: "Error hard deleting permission",
+      message: "Error al eliminar permanentemente permiso",
       error: error?.message || error,
     });
   }

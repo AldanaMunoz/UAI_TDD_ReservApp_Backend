@@ -11,6 +11,7 @@ import FoodTypeRoutes from "./FoodTypeRoutes";
 import PermissionRoutes from "./PermissionRoutes";
 import PersonRoutes from "./PersonRoutes";
 import PriceHistoryRoutes from "./PriceHistoryRoutes";
+import ReservationRoutes from "./ReservationRoutes";
 import RolePermissionRoutes from "./RolePermissionRoutes";
 import RoleRoutes from "./RoleRoutes";
 import SeasonRoutes from "./SeasonRoutes";
@@ -34,6 +35,7 @@ router.use("/foods", authenticateFirebase, attachLocalUser, FoodRoutes);
 router.use("/permissions", authenticateFirebase, attachLocalUser, PermissionRoutes);
 router.use("/persons", authenticateFirebase, attachLocalUser, PersonRoutes);
 router.use("/price-history", authenticateFirebase, attachLocalUser, PriceHistoryRoutes);
+router.use("/reservations", authenticateFirebase, attachLocalUser, ReservationRoutes);
 router.use("/role-permissions", authenticateFirebase, attachLocalUser, RolePermissionRoutes);
 router.use("/roles", authenticateFirebase, attachLocalUser, RoleRoutes);
 router.use("/seasons", authenticateFirebase, attachLocalUser, SeasonRoutes);
@@ -42,5 +44,6 @@ router.use("/user-roles", authenticateFirebase, attachLocalUser, UserRoleRoutes)
 router.use("/users", authenticateFirebase, attachLocalUser, UserRoutes);
 router.use("/weekly-planning-foods", authenticateFirebase, attachLocalUser, WeeklyPlanningFoodRoutes);
 router.use("/weekly-plannings", authenticateFirebase, attachLocalUser, WeeklyPlanningRoutes);
+
 
 export default router;

@@ -13,7 +13,7 @@ export async function getAllSeasons(_req: Request, res: Response) {
         return res.status(200).json(seasons);
     } catch (error) {
         return res.status(500).json({
-            message: "Error fetching seasons",
+            message: "Error al obtener temporadas",
             error,
         });
     }
@@ -24,12 +24,12 @@ export async function getSeasonById(req: Request, res: Response) {
         const id = Number(req.params.id);
         const season = await SeasonModel.findById(id);
         if (!season) {
-            return res.status(404).json({ message: "Season not found" });
+            return res.status(404).json({ message: "Temporada no encontrada" });
         }
         return res.status(200).json(season);
     } catch (error) {
         return res.status(500).json({
-            message: "Error fetching season",
+            message: "Error al obtener temporada",
             error,
         });
     }
@@ -42,7 +42,7 @@ export async function createSeason(req: Request, res: Response) {
         // Seguridad extra (además del Joi)
         if (!name || year === undefined || !startDate || !endDate) {
             return res.status(400).json({
-                message: "name, year, startDate and endDate are required",
+                message: "name, year, startDate y endDate son obligatorios",
             });
         }
 
@@ -56,7 +56,7 @@ export async function createSeason(req: Request, res: Response) {
         return res.status(201).json(created);
     } catch (error: any) {
         return res.status(500).json({
-            message: "Error creating season",
+            message: "Error al crear temporada",
             error: error?.message || error,
         });
     }
@@ -71,16 +71,16 @@ export async function updateSeason(req: Request, res: Response) {
         if (!updated) {
             return res
                 .status(404)
-                .json({ message: "Season not found or no changes" });
+                .json({ message: "Temporada no encontrada o sin cambios" });
         }
 
         return res.status(200).json({
-            message: "Season updated",
+            message: "Temporada actualizada",
             season: updated,
         });
     } catch (error: any) {
         return res.status(500).json({
-            message: "Error updating season",
+            message: "Error al actualizar temporada",
             error: error?.message || error,
         });
     }
@@ -91,12 +91,12 @@ export async function hardDeleteSeason(req: Request, res: Response) {
         const id = Number(req.params.id);
         const ok = await SeasonModel.hardDelete(id);
         if (!ok) {
-            return res.status(404).json({ message: "Season not found" });
+            return res.status(404).json({ message: "Temporada no encontrada" });
         }
-        return res.status(200).json({ message: "Season hard deleted" });
+        return res.status(200).json({ message: "Temporada eliminada permanentemente" });
     } catch (error) {
         return res.status(500).json({
-            message: "Error hard deleting season",
+            message: "Error al eliminar permanentemente temporada",
             error,
         });
     }

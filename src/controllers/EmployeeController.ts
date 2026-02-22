@@ -12,7 +12,7 @@ export async function getAllEmployees(_req: Request, res: Response) {
         const data = await EmployeeModel.find();
         return res.status(200).json(data);
     } catch (error) {
-        return res.status(500).json({ message: "Error fetching employees", error });
+        return res.status(500).json({ message: "Error al obtener empleados", error });
     }
 }
 
@@ -21,10 +21,10 @@ export async function getEmployeeById(req: Request, res: Response) {
     try {
         const id = Number(req.params.id);
         const emp = await EmployeeModel.findById(id);
-        if (!emp) return res.status(404).json({ message: "Employee not found" });
+        if (!emp) return res.status(404).json({ message: "Empleado no encontrado" });
         return res.status(200).json(emp);
     } catch (error) {
-        return res.status(500).json({ message: "Error fetching employee", error });
+        return res.status(500).json({ message: "Error al obtener empleado", error });
     }
 }
 
@@ -35,7 +35,7 @@ export async function getEmployeesByPersona(req: Request, res: Response) {
         const list = await EmployeeModel.findByPersona(id_persona);
         return res.status(200).json(list);
     } catch (error) {
-        return res.status(500).json({ message: "Error fetching employees by persona", error });
+        return res.status(500).json({ message: "Error al obtener empleados por persona", error });
     }
 }
 
@@ -54,7 +54,7 @@ export async function createEmployee(req: Request, res: Response) {
 
         return res.status(201).json(created);
     } catch (error: any) {
-        return res.status(500).json({ message: "Error creating employee", error: error?.message || error });
+        return res.status(500).json({ message: "Error al crear empleado", error: error?.message || error });
     }
 }
 
@@ -67,11 +67,11 @@ export async function updateEmployee(req: Request, res: Response) {
         if (patch.id_persona !== undefined) patch.id_persona = Number(patch.id_persona);
 
         const updated = await EmployeeModel.updatePartial(id, patch);
-        if (!updated) return res.status(404).json({ message: "Employee not found or no changes" });
+        if (!updated) return res.status(404).json({ message: "Empleado no encontrado o sin cambios" });
 
-        return res.status(200).json({ message: "Employee updated", employee: updated });
+        return res.status(200).json({ message: "Empleado actualizado", employee: updated });
     } catch (error: any) {
-        return res.status(500).json({ message: "Error updating employee", error: error?.message || error });
+        return res.status(500).json({ message: "Error al actualizar empleado", error: error?.message || error });
     }
 }
 
@@ -80,10 +80,10 @@ export async function hardDeleteEmployee(req: Request, res: Response) {
     try {
         const id = Number(req.params.id);
         const ok = await EmployeeModel.hardDelete(id);
-        if (!ok) return res.status(404).json({ message: "Employee not found" });
-        return res.status(200).json({ message: "Employee hard deleted" });
+        if (!ok) return res.status(404).json({ message: "Empleado no encontrado" });
+        return res.status(200).json({ message: "Empleado eliminado permanentemente" });
     } catch (error) {
-        return res.status(500).json({ message: "Error hard deleting employee", error });
+        return res.status(500).json({ message: "Error al eliminar permanentemente empleado", error });
     }
 }
 

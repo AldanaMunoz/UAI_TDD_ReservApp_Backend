@@ -16,7 +16,7 @@ export async function getAllRolePermissions(_req: Request, res: Response) {
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Error fetching roles_permisos", error });
+      .json({ message: "Error al obtener roles_permisos", error });
   }
 }
 
@@ -28,7 +28,7 @@ export async function getRolePermissionsByRoleId(req: Request, res: Response) {
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Error fetching permissions for role", error });
+      .json({ message: "Error al obtener permisos para el rol", error });
   }
 }
 
@@ -37,12 +37,12 @@ export async function getRolePermissionById(req: Request, res: Response) {
     const id = Number(req.params.id);
     const item = await RolePermissionModel.findById(id);
     if (!item)
-      return res.status(404).json({ message: "RolePermission not found" });
+      return res.status(404).json({ message: "Permiso del rol no encontrado" });
     return res.status(200).json(item);
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Error fetching rolePermission", error });
+      .json({ message: "Error al obtener permiso del rol", error });
   }
 }
 
@@ -54,18 +54,18 @@ export async function createRolePermission(req: Request, res: Response) {
   } catch (error: any) {
     if (isDuplicate(error)) {
       return res.status(409).json({
-        message: "RolePermission already exists",
+        message: "El permiso del rol ya existe",
         error: error?.message || error,
       });
     }
     if (isFkMissing(error)) {
       return res.status(409).json({
-        message: "Invalid roleId or permissionId (FK)",
+        message: "roleId o permissionId inválido (FK)",
         error: error?.message || error,
       });
     }
     return res.status(500).json({
-      message: "Error creating rolePermission",
+      message: "Error al crear permiso del rol",
       error: error?.message || error,
     });
   }
@@ -78,26 +78,26 @@ export async function updateRolePermission(req: Request, res: Response) {
 
     const updated = await RolePermissionModel.updatePartial(id, patch);
     if (!updated)
-      return res.status(404).json({ message: "RolePermission not found" });
+      return res.status(404).json({ message: "Permiso del rol no encontrado" });
 
     return res
       .status(200)
-      .json({ message: "RolePermission updated", rolePermission: updated });
+      .json({ message: "Permiso del rol actualizado", rolePermission: updated });
   } catch (error: any) {
     if (isDuplicate(error)) {
       return res.status(409).json({
-        message: "RolePermission already exists",
+        message: "El permiso del rol ya existe",
         error: error?.message || error,
       });
     }
     if (isFkMissing(error)) {
       return res.status(409).json({
-        message: "Invalid roleId or permissionId (FK)",
+        message: "roleId o permissionId inválido (FK)",
         error: error?.message || error,
       });
     }
     return res.status(500).json({
-      message: "Error updating rolePermission",
+      message: "Error al actualizar permiso del rol",
       error: error?.message || error,
     });
   }
@@ -108,11 +108,11 @@ export async function hardDeleteRolePermission(req: Request, res: Response) {
     const id = Number(req.params.id);
     const ok = await RolePermissionModel.hardDelete(id);
     if (!ok)
-      return res.status(404).json({ message: "RolePermission not found" });
-    return res.status(200).json({ message: "RolePermission hard deleted" });
+      return res.status(404).json({ message: "Permiso del rol no encontrado" });
+    return res.status(200).json({ message: "Permiso del rol eliminado permanentemente" });
   } catch (error: any) {
     return res.status(500).json({
-      message: "Error hard deleting rolePermission",
+      message: "Error al eliminar permanentemente permiso del rol",
       error: error?.message || error,
     });
   }
@@ -128,14 +128,14 @@ export async function hardDeleteRolePermissionByPair(
 
     const ok = await RolePermissionModel.hardDeleteByPair(roleId, permissionId);
     if (!ok)
-      return res.status(404).json({ message: "RolePermission not found" });
+      return res.status(404).json({ message: "Permiso del rol no encontrado" });
 
     return res
       .status(200)
-      .json({ message: "RolePermission hard deleted (by pair)" });
+      .json({ message: "Permiso del rol eliminado permanentemente (por par)" });
   } catch (error: any) {
     return res.status(500).json({
-      message: "Error hard deleting rolePermission (by pair)",
+      message: "Error al eliminar permanentemente permiso del rol (por par)",
       error: error?.message || error,
     });
   }

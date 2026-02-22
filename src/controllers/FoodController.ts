@@ -12,7 +12,7 @@ export async function getAllFoods(_req: Request, res: Response) {
         const data = await FoodModel.find();
         return res.status(200).json(data);
     } catch (error) {
-        return res.status(500).json({ message: "Error fetching foods", error });
+        return res.status(500).json({ message: "Error al obtener comidas", error });
     }
 }
 
@@ -22,12 +22,12 @@ export async function getFoodById(req: Request, res: Response) {
         const food = await FoodModel.findById(id);
 
         if (!food) {
-            return res.status(404).json({ message: "Food not found" });
+            return res.status(404).json({ message: "Comida no encontrada" });
         }
 
         return res.status(200).json(food);
     } catch (error) {
-        return res.status(500).json({ message: "Error fetching food", error });
+        return res.status(500).json({ message: "Error al obtener comida", error });
     }
 }
 
@@ -40,7 +40,7 @@ export async function createFood(req: Request, res: Response) {
         return res.status(201).json(created);
     } catch (error: any) {
         return res.status(500).json({
-            message: "Error creating food",
+            message: "Error al crear comida",
             error: error?.message || error,
         });
     }
@@ -56,15 +56,15 @@ export async function updateFood(req: Request, res: Response) {
         if (!updated) {
             return res
                 .status(404)
-                .json({ message: "Food not found or no changes" });
+                .json({ message: "Comida no encontrada o sin cambios" });
         }
 
         return res
             .status(200)
-            .json({ message: "Food updated", food: updated });
+            .json({ message: "Comida actualizada", food: updated });
     } catch (error: any) {
         return res.status(500).json({
-            message: "Error updating food",
+            message: "Error al actualizar comida",
             error: error?.message || error,
         });
     }
@@ -76,13 +76,13 @@ export async function hardDeleteFood(req: Request, res: Response) {
         const ok = await FoodModel.hardDelete(id);
 
         if (!ok) {
-            return res.status(404).json({ message: "Food not found" });
+            return res.status(404).json({ message: "Comida no encontrada" });
         }
 
-        return res.status(200).json({ message: "Food hard deleted" });
+        return res.status(200).json({ message: "Comida eliminada permanentemente" });
     } catch (error) {
         return res.status(500).json({
-            message: "Error hard deleting food",
+            message: "Error al eliminar permanentemente comida",
             error,
         });
     }

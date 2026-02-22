@@ -16,7 +16,7 @@ export async function getAllUserRoles(_req: Request, res: Response) {
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Error fetching usuarios_roles", error });
+      .json({ message: "Error al obtener usuarios_roles", error });
   }
 }
 
@@ -28,7 +28,7 @@ export async function getUserRolesByUserId(req: Request, res: Response) {
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Error fetching roles for user", error });
+      .json({ message: "Error al obtener roles del usuario", error });
   }
 }
 
@@ -36,10 +36,10 @@ export async function getUserRoleById(req: Request, res: Response) {
   try {
     const id = Number(req.params.id);
     const item = await UserRoleModel.findById(id);
-    if (!item) return res.status(404).json({ message: "UserRole not found" });
+    if (!item) return res.status(404).json({ message: "Rol de usuario no encontrado" });
     return res.status(200).json(item);
   } catch (error) {
-    return res.status(500).json({ message: "Error fetching userRole", error });
+    return res.status(500).json({ message: "Error al obtener rol de usuario", error });
   }
 }
 
@@ -51,18 +51,18 @@ export async function createUserRole(req: Request, res: Response) {
   } catch (error: any) {
     if (isDuplicate(error)) {
       return res.status(409).json({
-        message: "UserRole already exists",
+        message: "El rol de usuario ya existe",
         error: error?.message || error,
       });
     }
     if (isFkMissing(error)) {
       return res.status(409).json({
-        message: "Invalid userId or roleId (FK)",
+        message: "userId o roleId inválido (FK)",
         error: error?.message || error,
       });
     }
     return res.status(500).json({
-      message: "Error creating userRole",
+      message: "Error al crear rol de usuario",
       error: error?.message || error,
     });
   }
@@ -75,26 +75,26 @@ export async function updateUserRole(req: Request, res: Response) {
 
     const updated = await UserRoleModel.updatePartial(id, patch);
     if (!updated)
-      return res.status(404).json({ message: "UserRole not found" });
+      return res.status(404).json({ message: "Rol de usuario no encontrado" });
 
     return res
       .status(200)
-      .json({ message: "UserRole updated", userRole: updated });
+      .json({ message: "Rol de usuario actualizado", userRole: updated });
   } catch (error: any) {
     if (isDuplicate(error)) {
       return res.status(409).json({
-        message: "UserRole already exists",
+        message: "El rol de usuario ya existe",
         error: error?.message || error,
       });
     }
     if (isFkMissing(error)) {
       return res.status(409).json({
-        message: "Invalid userId or roleId (FK)",
+        message: "userId o roleId inválido (FK)",
         error: error?.message || error,
       });
     }
     return res.status(500).json({
-      message: "Error updating userRole",
+      message: "Error al actualizar rol de usuario",
       error: error?.message || error,
     });
   }
@@ -104,11 +104,11 @@ export async function hardDeleteUserRole(req: Request, res: Response) {
   try {
     const id = Number(req.params.id);
     const ok = await UserRoleModel.hardDelete(id);
-    if (!ok) return res.status(404).json({ message: "UserRole not found" });
-    return res.status(200).json({ message: "UserRole hard deleted" });
+    if (!ok) return res.status(404).json({ message: "Rol de usuario no encontrado" });
+    return res.status(200).json({ message: "Rol de usuario eliminado permanentemente" });
   } catch (error: any) {
     return res.status(500).json({
-      message: "Error hard deleting userRole",
+      message: "Error al eliminar permanentemente rol de usuario",
       error: error?.message || error,
     });
   }
@@ -120,12 +120,12 @@ export async function hardDeleteUserRoleByPair(req: Request, res: Response) {
     const roleId = Number(req.params.roleId);
 
     const ok = await UserRoleModel.hardDeleteByPair(userId, roleId);
-    if (!ok) return res.status(404).json({ message: "UserRole not found" });
+    if (!ok) return res.status(404).json({ message: "Rol de usuario no encontrado" });
 
-    return res.status(200).json({ message: "UserRole hard deleted (by pair)" });
+    return res.status(200).json({ message: "Rol de usuario eliminado permanentemente (por par)" });
   } catch (error: any) {
     return res.status(500).json({
-      message: "Error hard deleting userRole (by pair)",
+      message: "Error al eliminar permanentemente rol de usuario (por par)",
       error: error?.message || error,
     });
   }
