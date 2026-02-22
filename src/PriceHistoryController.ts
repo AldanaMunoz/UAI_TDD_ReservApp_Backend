@@ -57,8 +57,7 @@ export async function getAllPriceHistoryByDates(req: Request, res: Response) {
 
     const parseStart = (ymd: string) => new Date(`${ymd}T00:00:00.000Z`);
     const parseEnd = (ymd: string) => new Date(`${ymd}T23:59:59.999Z`);
-    const overlaps = (aStart: Date, aEnd: Date, bStart: Date, bEnd: Date) =>
-      aStart <= bEnd && aEnd >= bStart;
+    const overlaps = (aStart: Date, aEnd: Date, bStart: Date, bEnd: Date) => aStart <= bEnd && aEnd >= bStart;
 
     const filtered = (all as IPriceHistory[])
       .filter((ph) => {
@@ -86,19 +85,9 @@ export async function getAllPriceHistoryByDates(req: Request, res: Response) {
 export async function createPriceHistory(req: Request, res: Response) {
   try {
     const body = req.body as IPriceHistory;
-
-    const created = await PriceHistoryService.create(body);
-
+    const created = await PriceHistoryModel.create(body);
     return res.status(201).json(created);
-  } catch (error: any) {
-    if (error?.status && error?.code) {
-      return res.status(error.status).json({
-        message: error.message,
-        code: error.code,
-        data: error.data,
-      });
-    }
-
+  } catch (error) {
     return res.status(500).json({ message: "Error al crear historial de precios", error });
   }
 }

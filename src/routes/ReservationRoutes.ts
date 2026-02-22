@@ -3,8 +3,8 @@ import express from "express";
 import ReservationController from "../controllers/ReservationController";
 import validationMiddleware from "../middleware/ValidatorMiddleware";
 import {
-    createReservationValidationSchema,
-    updateReservationValidationSchema,
+  createReservationValidationSchema,
+  updateReservationValidationSchema,
 } from "../validators/ReservationValidation";
 
 const ReservationRoutes = express.Router();
@@ -25,6 +25,56 @@ const ReservationRoutes = express.Router();
  *         description: Lista de reservas
  */
 ReservationRoutes.get("/", ReservationController.getAllReservations);
+
+/* ===========================================================
+   BUSINESS
+   =========================================================== */
+
+/**
+ * @openapi
+ * /reservations/by-dates:
+ *   get:
+ *     summary: Obtener reservas por mes/año (útil para liquidaciones)
+ *     tags:
+ *       - Reservations
+ *     parameters:
+ *       - in: query
+ *         name: month
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *         description: Mes (1-12)
+ *       - in: query
+ *         name: year
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1900
+ *           maximum: 3000
+ *         description: Año (YYYY)
+ *       - in: query
+ *         name: includeCancelled
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           enum: [0, 1]
+ *         description: Incluir canceladas (1) o excluir (0). Default 0
+ *       - in: query
+ *         name: onlyPendingLiquidation
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           enum: [0, 1]
+ *         description: Solo pendientes de liquidación (1) o todas (0). Default 1
+ *     responses:
+ *       200:
+ *         description: Reservas filtradas por rango
+ *       400:
+ *         description: Parámetros inválidos
+ */
+ReservationRoutes.get("/by-dates", ReservationController.getReservationsByDates);
 
 /**
  * @openapi
@@ -104,9 +154,9 @@ ReservationRoutes.get("/:id", ReservationController.getReservationById);
  *         description: Error de validación
  */
 ReservationRoutes.post(
-    "/",
-    validationMiddleware(createReservationValidationSchema),
-    ReservationController.createReservation
+  "/",
+  validationMiddleware(createReservationValidationSchema),
+  ReservationController.createReservation
 );
 
 /**
@@ -137,9 +187,9 @@ ReservationRoutes.post(
  *         description: Reserva no encontrada
  */
 ReservationRoutes.patch(
-    "/:id",
-    validationMiddleware(updateReservationValidationSchema),
-    ReservationController.updateReservation
+  "/:id",
+  validationMiddleware(updateReservationValidationSchema),
+  ReservationController.updateReservation
 );
 
 /**

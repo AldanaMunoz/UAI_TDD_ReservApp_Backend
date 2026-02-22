@@ -9,6 +9,7 @@ const isoDateOrNull = Joi.date().iso().allow(null);
 export const createReservationValidationSchema = Joi.object({
     employeeId: Joi.number().integer().positive().required(),
     liquidationId: positiveIntOrNull.optional(),
+    priceHistoryId: Joi.number().integer().positive().allow(null).optional(),
 
     reservedAt: Joi.date().iso().required(),
     cancelledAt: isoDateOrNull.optional(),
@@ -32,6 +33,7 @@ export const createReservationValidationSchema = Joi.object({
 export const updateReservationValidationSchema = Joi.object({
     employeeId: Joi.number().integer().positive().optional(),
     liquidationId: positiveIntOrNull.optional(),
+    priceHistoryId: Joi.number().integer().positive().allow(null).optional(),
 
     reservedAt: Joi.date().iso().optional(),
     cancelledAt: isoDateOrNull.optional(),

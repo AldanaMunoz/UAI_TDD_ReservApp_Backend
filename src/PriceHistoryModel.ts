@@ -11,7 +11,7 @@ const PriceHistoryModel = {
         id,
         precio       AS price,
         fecha_inicio AS startDate,
-        fecha_hasta  AS toDate
+        fecha_desde  AS toDate
       FROM ${TABLE}
       ORDER BY fecha_inicio DESC, id DESC`
     );
@@ -24,7 +24,7 @@ const PriceHistoryModel = {
         id,
         precio       AS price,
         fecha_inicio AS startDate,
-        fecha_hasta  AS toDate
+        fecha_desde  AS toDate
       FROM ${TABLE}
       WHERE id = :id`,
       { id: Number(id) }
@@ -36,7 +36,7 @@ const PriceHistoryModel = {
 
   async create(data: IPriceHistory, exec: any = db): Promise<IPriceHistory | undefined> {
     const [res] = await exec.execute(
-      `INSERT INTO ${TABLE} (precio, fecha_inicio, fecha_hasta)
+      `INSERT INTO ${TABLE} (precio, fecha_inicio, fecha_desde)
        VALUES (:price, :startDate, :toDate)`,
       {
         price: data.price,
@@ -57,7 +57,7 @@ const PriceHistoryModel = {
     const entries: Array<[string, any]> = [];
     if (patch.price !== undefined) entries.push(["precio", patch.price]);
     if (patch.startDate !== undefined) entries.push(["fecha_inicio", patch.startDate]);
-    if (patch.toDate !== undefined) entries.push(["fecha_hasta", patch.toDate ?? null]);
+    if (patch.toDate !== undefined) entries.push(["fecha_desde", patch.toDate ?? null]);
 
     if (!entries.length) return this.findById(id, exec);
 

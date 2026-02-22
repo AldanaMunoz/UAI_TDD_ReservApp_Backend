@@ -27,7 +27,7 @@ const PriceHistoryRoutes = express.Router();
 PriceHistoryRoutes.get("/", PriceHistoryController.getAllPriceHistory);
 
 /* ===========================================================
-   NEGOCIO + VALIDACIONES ESPECÍFICAS
+   NEGOCIO
    =========================================================== */
 
 /**
@@ -60,7 +60,10 @@ PriceHistoryRoutes.get("/", PriceHistoryController.getAllPriceHistory);
  *       400:
  *         description: Parámetros inválidos
  */
-PriceHistoryRoutes.get("/by-dates", PriceHistoryController.getAllPriceHistoryByDates);
+PriceHistoryRoutes.get(
+  "/by-dates",
+  PriceHistoryController.getAllPriceHistoryByDates
+);
 
 /**
  * @openapi
@@ -78,8 +81,6 @@ PriceHistoryRoutes.get("/by-dates", PriceHistoryController.getAllPriceHistoryByD
  *     responses:
  *       200:
  *         description: Historial encontrado
- *       400:
- *         description: ID inválido
  *       404:
  *         description: Historial no encontrado
  */
@@ -92,33 +93,11 @@ PriceHistoryRoutes.get("/:id", PriceHistoryController.getPriceHistoryById);
  *     summary: Crear un historial de precio
  *     tags:
  *       - PriceHistory
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               price:
- *                 type: number
- *                 example: 100
- *               startDate:
- *                 type: string
- *                 example: "2026-02-01"
- *               toDate:
- *                 type: string
- *                 nullable: true
- *                 example: "2026-02-28"
- *             required:
- *               - price
- *               - startDate
  *     responses:
  *       201:
  *         description: Historial creado
  *       400:
  *         description: Error de validación
- *       409:
- *         description: No se puede crear por solapamiento de rangos
  */
 PriceHistoryRoutes.post(
   "/",
@@ -143,11 +122,11 @@ PriceHistoryRoutes.post(
  *       200:
  *         description: Historial actualizado
  *       400:
- *         description: Error de validación / ID inválido
+ *         description: Error de validación
  *       404:
  *         description: Historial no encontrado
  *       409:
- *         description: Cambio no permitido por reglas (precio bloqueado / solapamiento / toDate inválido)
+ *         description: Cambio no permitido por reglas de negocio
  */
 PriceHistoryRoutes.patch(
   "/:id",
@@ -171,11 +150,12 @@ PriceHistoryRoutes.patch(
  *     responses:
  *       200:
  *         description: Historial eliminado
- *       400:
- *         description: ID inválido
  *       404:
  *         description: Historial no encontrado
  */
-PriceHistoryRoutes.delete("/hard/:id", PriceHistoryController.hardDeletePriceHistory);
+PriceHistoryRoutes.delete(
+  "/hard/:id",
+  PriceHistoryController.hardDeletePriceHistory
+);
 
 export default PriceHistoryRoutes;

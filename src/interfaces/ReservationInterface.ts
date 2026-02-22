@@ -14,6 +14,7 @@
  * - codigo_qr
  * - estado_reserva
  * - estado_liquidacion
+ * - id_historico_precio
  */
 
 export interface IReservation {
@@ -21,6 +22,7 @@ export interface IReservation {
 
     employeeId: number;                // id_empleado
     liquidationId?: number | null;     // id_liquidacion
+    priceHistoryId?: number | null;    // id_historico_precio
 
     reservedAt: string | Date;         // fecha_reservada
     cancelledAt?: string | Date | null; // fecha_cancelacion
