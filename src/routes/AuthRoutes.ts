@@ -19,40 +19,35 @@ const AuthRoutes = express.Router();
  * /auth/login:
  *   post:
  *     summary: Login híbrido (LOCAL + Firebase)
- *     description: >
- *       1) Valida email/password contra la DB local.
- *       2) Valida credenciales contra Firebase vía REST.
- *       3) Sincroniza firebaseUID si faltaba.
  *     tags:
  *       - Auth
- *     security: []   # Endpoint público (no requiere token previo)
+ *     security: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [email, password]
  *             properties:
  *               email:
  *                 type: string
  *               password:
  *                 type: string
- *             required:
- *               - email
- *               - password
+ *           examples:
+ *             admin:
+ *               summary: Admin demo
+ *               value:
+ *                 email: "renzo.jrr10@gmail.com"
+ *                 password: "123456"
+ *             employee:
+ *               summary: Empleado demo
+ *               value:
+ *                 email: "empleado@tuapp.com"
+ *                 password: "Empleado1234!"
  *     responses:
  *       200:
- *         description: Login OK (local + firebase), devuelve tokens y usuario
- *       400:
- *         description: email y password son requeridos
- *       401:
- *         description: Credenciales inválidas (local o Firebase)
- *       403:
- *         description: Usuario inactivo (local)
- *       409:
- *         description: Inconsistencia entre firebaseUID local y el de Firebase
- *       500:
- *         description: Error interno durante el login
+ *         description: Login OK
  */
 AuthRoutes.post("/login", controllers.loginLocalFirebase);
 
@@ -77,6 +72,8 @@ AuthRoutes.post("/login", controllers.loginLocalFirebase);
  *             properties:
  *               firebaseUID:
  *                 type: string
+ *               sessionToken:
+ *                type: string
  *             required:
  *               - firebaseUID
  *     responses:

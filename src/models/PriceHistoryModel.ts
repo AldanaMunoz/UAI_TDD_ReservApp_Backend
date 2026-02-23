@@ -9,12 +9,16 @@ const PriceHistoryModel = {
     const [rows] = await exec.execute(
       `SELECT
         id,
-        precio       AS price,
-        fecha_inicio AS startDate,
-        fecha_hasta  AS toDate
+        precio AS price,
+        DATE_FORMAT(fecha_inicio, '%Y-%m-%d') AS startDate,
+        CASE
+          WHEN fecha_hasta IS NULL THEN NULL
+          ELSE DATE_FORMAT(fecha_hasta, '%Y-%m-%d')
+        END AS toDate
       FROM ${TABLE}
       ORDER BY fecha_inicio DESC, id DESC`
     );
+
     return rows as unknown as IPriceHistory[];
   },
 
@@ -22,9 +26,12 @@ const PriceHistoryModel = {
     const [rows] = await exec.execute(
       `SELECT
         id,
-        precio       AS price,
-        fecha_inicio AS startDate,
-        fecha_hasta  AS toDate
+        precio AS price,
+        DATE_FORMAT(fecha_inicio, '%Y-%m-%d') AS startDate,
+        CASE
+          WHEN fecha_hasta IS NULL THEN NULL
+          ELSE DATE_FORMAT(fecha_hasta, '%Y-%m-%d')
+        END AS toDate
       FROM ${TABLE}
       WHERE id = :id`,
       { id: Number(id) }
@@ -40,8 +47,8 @@ const PriceHistoryModel = {
        VALUES (:price, :startDate, :toDate)`,
       {
         price: data.price,
-        startDate: data.startDate,
-        toDate: data.toDate ?? null,
+        startDate: data.startDate, // 'YYYY-MM-DD'
+        toDate: data.toDate ?? null, // 'YYYY-MM-DD' | null
       }
     );
 
