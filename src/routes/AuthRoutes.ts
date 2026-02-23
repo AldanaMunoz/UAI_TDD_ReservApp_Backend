@@ -1,12 +1,9 @@
 import express from "express";
-import UserBundleController from "../controllers/UserBundleController";
 import controllers from "../controllers/UserController"; // Solo login/logout
-import validationMiddleware from "../middleware/ValidatorMiddleware";
 import {
   authenticateFirebase,
   attachLocalUser,
 } from "../middleware/AuthMiddleware";
-import { createUserBundleValidationSchema } from "../validators/UserBundleValidation";
 
 const AuthRoutes = express.Router();
 
