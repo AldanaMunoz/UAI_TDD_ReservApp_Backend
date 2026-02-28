@@ -26,13 +26,17 @@ class ServiceError extends Error {
   }
 }
 
+const LIQUIDATED_STATUS = "liquidada" as const;
+
 // Parse seguro YYYY-MM-DD a Date UTC
 function parseYmdToUtcStart(dateStr: string): Date {
   return new Date(`${dateStr}T00:00:00.000Z`);
 }
+
 function parseYmdToUtcEnd(dateStr: string): Date {
   return new Date(`${dateStr}T23:59:59.999Z`);
 }
+
 function overlaps(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date): boolean {
   return aStart <= bEnd && aEnd >= bStart;
 }
@@ -56,7 +60,11 @@ function getHistoryForDate(date: Date, histories: IPriceHistory[]): IPriceHistor
 
 async function getConn(): Promise<any> {
   const anyDb = db as any;
-  if (typeof anyDb.getConnection === "function") return anyDb.getConnection();
+
+  if (typeof anyDb.getConnection === "function") {
+    return anyDb.getConnection();
+  }
+
   return anyDb;
 }
 
@@ -83,7 +91,10 @@ async function findLiquidationByMonthYear(
   );
 
   const list = rows as any[];
-  if (!list.length) return undefined;
+
+  if (!list.length) {
+    return undefined;
+  }
 
   return {
     id: Number(list[0].id),
@@ -95,7 +106,11 @@ async function findLiquidationByMonthYear(
 
 function chunkArray<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+
+  for (let i = 0; i < arr.length; i += size) {
+    out.push(arr.slice(i, i + size));
+  }
+
   return out;
 }
 
@@ -104,6 +119,7 @@ const LiquidationService = {
     if (!Number.isInteger(month) || month < 1 || month > 12) {
       throw new ServiceError("month inválido (1-12)", 400, "INVALID_MONTH");
     }
+
     if (!Number.isInteger(year) || year < 1900 || year > 3000) {
       throw new ServiceError("year inválido (1900-3000)", 400, "INVALID_YEAR");
     }
@@ -121,6 +137,7 @@ const LiquidationService = {
 
       // 1) Evitar duplicados
       const existing = await findLiquidationByMonthYear(month, year, conn);
+
       if (existing?.id) {
         throw new ServiceError(
           "Ya existe una liquidación para ese mes/año",
@@ -131,10 +148,15 @@ const LiquidationService = {
       }
 
       // 2) Crear liquidación (total 0)
-      const created = await LiquidationModel.create({ month, year, totalAmount: 0 }, conn);
+      const created = await LiquidationModel.create(
+        { month, year, totalAmount: 0 },
+        conn
+      );
+
       if (!created?.id) {
         throw new ServiceError("No se pudo crear la liquidación", 500, "CREATE_FAILED");
       }
+
       const liquidationId = created.id;
 
       // Rango del mes
@@ -143,7 +165,9 @@ const LiquidationService = {
 
       // 3) Traer reservas elegibles (bloqueo con FOR UPDATE si hay transacción)
       const [reservationRows] = await conn.execute(
-        `SELECT r.id, r.fecha_reservada AS reservedAt
+        `SELECT
+            r.id,
+            r.fecha_reservada AS reservedAt
          FROM reservas r
          WHERE YEAR(r.fecha_reservada) = :year
            AND MONTH(r.fecha_reservada) = :month
@@ -170,6 +194,7 @@ const LiquidationService = {
         .filter((h) => {
           const start = parseYmdToUtcStart(h.startDate);
           const end = h.toDate ? parseYmdToUtcEnd(h.toDate) : farFuture;
+
           return overlaps(start, end, rangeStart, rangeEnd);
         })
         .sort(
@@ -189,7 +214,10 @@ const LiquidationService = {
             `No hay precio histórico que cubra la fecha de la reserva: ${r.reservedAt.toISOString()}`,
             422,
             "MISSING_PRICE_FOR_DATE",
-            { reservationId: r.id, reservedAt: r.reservedAt.toISOString() }
+            {
+              reservationId: r.id,
+              reservedAt: r.reservedAt.toISOString(),
+            }
           );
         }
 
@@ -204,11 +232,12 @@ const LiquidationService = {
 
       // 6) Update reservas con CASE (por chunks para evitar query gigante)
       let reservationsUpdated = 0;
-
-      const chunks = chunkArray(details, 300); // ajustable
+      const chunks = chunkArray(details, 300);
 
       for (const chunk of chunks) {
-        if (!chunk.length) continue;
+        if (!chunk.length) {
+          continue;
+        }
 
         const caseSql = chunk
           .map((_, i) => `WHEN :rid${i} THEN :phid${i}`)
@@ -216,7 +245,10 @@ const LiquidationService = {
 
         const idsSql = chunk.map((_, i) => `:rid${i}`).join(", ");
 
-        const params: any = { liquidationId };
+        const params: any = {
+          liquidationId,
+          reservationStatus: LIQUIDATED_STATUS,
+        };
 
         chunk.forEach((d, i) => {
           params[`rid${i}`] = d.reservationId;
@@ -227,6 +259,7 @@ const LiquidationService = {
           `UPDATE reservas
            SET id_liquidacion = :liquidationId,
                estado_liquidacion = 1,
+               estado_reserva = :reservationStatus,
                id_historico_precio = CASE id ${caseSql} ELSE id_historico_precio END
            WHERE id IN (${idsSql})
              AND fecha_cancelacion IS NULL
@@ -238,13 +271,16 @@ const LiquidationService = {
         reservationsUpdated += (updRes as ResultSetHeader).affectedRows ?? 0;
       }
 
-      // Si querés ser estricto con concurrencia:
+      // Validación estricta por concurrencia
       if (reservationsUpdated !== reservationsCount) {
         throw new ServiceError(
           "No se pudieron actualizar todas las reservas (posible cambio concurrente).",
           409,
           "RESERVATIONS_CHANGED",
-          { expected: reservationsCount, updated: reservationsUpdated }
+          {
+            expected: reservationsCount,
+            updated: reservationsUpdated,
+          }
         );
       }
 
@@ -272,7 +308,9 @@ const LiquidationService = {
         }
       }
 
-      if (error instanceof ServiceError) throw error;
+      if (error instanceof ServiceError) {
+        throw error;
+      }
 
       throw new ServiceError(
         error?.message || "Error interno en LiquidationService.generate",

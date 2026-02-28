@@ -18,7 +18,9 @@ function toNumber(value: any): number | null {
   return n;
 }
 
-async function hasReservationsAssignedToLiquidation(liquidationId: number): Promise<boolean> {
+async function hasReservationsAssignedToLiquidation(
+  liquidationId: number
+): Promise<boolean> {
   const [rows] = await (db as any).execute(
     `SELECT 1
      FROM reservas r
@@ -30,6 +32,41 @@ async function hasReservationsAssignedToLiquidation(liquidationId: number): Prom
   return Array.isArray(rows) && rows.length > 0;
 }
 
+async function findLiquidationByMonthYear(
+  month: number,
+  year: number
+): Promise<ILiquidation | undefined> {
+  if (typeof (LiquidationModel as any).findByMonthYear === "function") {
+    return (LiquidationModel as any).findByMonthYear(month, year);
+  }
+
+  const [rows] = await (db as any).execute(
+    `SELECT
+        id,
+        mes AS month,
+        anio AS year,
+        monto_total AS totalAmount
+     FROM liquidaciones
+     WHERE mes = :month AND anio = :year
+     ORDER BY id DESC
+     LIMIT 1`,
+    { month, year }
+  );
+
+  const list = rows as any[];
+
+  if (!list.length) {
+    return undefined;
+  }
+
+  return {
+    id: Number(list[0].id),
+    month: Number(list[0].month),
+    year: Number(list[0].year),
+    totalAmount: Number(list[0].totalAmount) || 0,
+  } as ILiquidation;
+}
+
 /* ===========================================================
    CRUD
    =========================================================== */
@@ -38,14 +75,18 @@ export async function getAllLiquidations(_req: Request, res: Response) {
   try {
     const data = await LiquidationModel.find();
     return res.status(200).json(data);
-  } catch (error) {
-    return res.status(500).json({ message: "Error al obtener liquidaciones", error });
+  } catch (error: any) {
+    return res.status(500).json({
+      message: "Error al obtener liquidaciones",
+      error: error?.message || error,
+    });
   }
 }
 
 export async function getLiquidationById(req: Request, res: Response) {
   try {
     const id = toInt(req.params.id);
+
     if (id === null || id <= 0) {
       return res.status(400).json({ message: "ID inválido" });
     }
@@ -57,16 +98,58 @@ export async function getLiquidationById(req: Request, res: Response) {
     }
 
     return res.status(200).json(liquidation);
-  } catch (error) {
-    return res.status(500).json({ message: "Error al obtener liquidación", error });
+  } catch (error: any) {
+    return res.status(500).json({
+      message: "Error al obtener liquidación",
+      error: error?.message || error,
+    });
   }
 }
 
 export async function createLiquidation(req: Request, res: Response) {
   try {
-    const body = req.body as ILiquidation;
-    const created = await LiquidationModel.create(body);
-    return res.status(201).json(created);
+    const month = toInt(req.body?.month);
+    const year = toInt(req.body?.year);
+    const totalAmountRaw = req.body?.totalAmount;
+    const totalAmount =
+      totalAmountRaw === undefined ? 0 : toNumber(totalAmountRaw);
+
+    if (month === null || month < 1 || month > 12) {
+      return res.status(400).json({ message: "mes inválido (1-12)" });
+    }
+
+    if (year === null || year < 1900 || year > 3000) {
+      return res.status(400).json({ message: "año inválido" });
+    }
+
+    if (totalAmount === null || totalAmount < 0) {
+      return res.status(400).json({
+        message: "totalAmount inválido (debe ser >= 0)",
+      });
+    }
+
+    const existing = await findLiquidationByMonthYear(month, year);
+
+    if (existing?.id) {
+      return res.status(409).json({
+        message: "Ya existe una liquidación para ese mes/año",
+        code: "LIQUIDATION_EXISTS",
+        data: { liquidationId: existing.id },
+      });
+    }
+
+    const payload: ILiquidation = {
+      month,
+      year,
+      totalAmount,
+    };
+
+    const created = await LiquidationModel.create(payload);
+
+    return res.status(201).json({
+      message: "Liquidación creada",
+      liquidation: created,
+    });
   } catch (error: any) {
     return res.status(500).json({
       message: "Error al crear liquidación",
@@ -78,23 +161,58 @@ export async function createLiquidation(req: Request, res: Response) {
 export async function updateLiquidation(req: Request, res: Response) {
   try {
     const id = toInt(req.params.id);
+
     if (id === null || id <= 0) {
       return res.status(400).json({ message: "ID inválido" });
     }
 
-    const patch: Partial<ILiquidation> = { ...req.body };
+    const current = await LiquidationModel.findById(id);
 
-    // Validación: patch no vacío
-    if (!patch || Object.keys(patch).length === 0) {
-      return res.status(400).json({ message: "Debés enviar al menos un campo para actualizar" });
+    if (!current) {
+      return res.status(404).json({ message: "Liquidación no encontrada" });
     }
 
-    // NUEVA REGLA: si la liquidación ya tiene reservas asignadas,
-    // no se puede modificar month/year/totalAmount
+    // Sanitizar: solo permitir campos válidos
+    const patch: Partial<ILiquidation> = {};
+
+    if (req.body?.month !== undefined) {
+      const month = toInt(req.body.month);
+      if (month === null || month < 1 || month > 12) {
+        return res.status(400).json({ message: "month inválido (1-12)" });
+      }
+      patch.month = month;
+    }
+
+    if (req.body?.year !== undefined) {
+      const year = toInt(req.body.year);
+      if (year === null || year < 1900 || year > 3000) {
+        return res.status(400).json({ message: "año inválido" });
+      }
+      patch.year = year;
+    }
+
+    if (req.body?.totalAmount !== undefined) {
+      const totalAmount = toNumber(req.body.totalAmount);
+      if (totalAmount === null || totalAmount < 0) {
+        return res.status(400).json({
+          message: "totalAmount inválido (debe ser >= 0)",
+        });
+      }
+      patch.totalAmount = totalAmount;
+    }
+
+    if (Object.keys(patch).length === 0) {
+      return res.status(400).json({
+        message:
+          "Debés enviar al menos uno de estos campos para actualizar: month, year, totalAmount",
+      });
+    }
+
+    // Si ya tiene reservas asignadas, bloquear edición de campos sensibles
     const touchesSensitiveFields =
-      (patch as any).month !== undefined ||
-      (patch as any).year !== undefined ||
-      (patch as any).totalAmount !== undefined;
+      patch.month !== undefined ||
+      patch.year !== undefined ||
+      patch.totalAmount !== undefined;
 
     if (touchesSensitiveFields) {
       const assigned = await hasReservationsAssignedToLiquidation(id);
@@ -108,37 +226,28 @@ export async function updateLiquidation(req: Request, res: Response) {
       }
     }
 
-    // Validación: si viene mes
-    if ((patch as any).month !== undefined) {
-      const month = toInt((patch as any).month);
-      if (month === null || month < 1 || month > 12) {
-        return res.status(400).json({ message: "mes inválido (1-12)" });
-      }
-      (patch as any).month = month;
-    }
+    // Validar duplicado month/year si cambia alguno de esos campos
+    const nextMonth = patch.month ?? current.month;
+    const nextYear = patch.year ?? current.year;
 
-    // Validación: si viene año
-    if ((patch as any).year !== undefined) {
-      const year = toInt((patch as any).year);
-      if (year === null || year < 1900 || year > 3000) {
-        return res.status(400).json({ message: "año inválido (1900-3000)" });
-      }
-      (patch as any).year = year;
-    }
+    if (nextMonth !== undefined && nextYear !== undefined) {
+      const existing = await findLiquidationByMonthYear(nextMonth, nextYear);
 
-    // Validación: si viene monto total
-    if ((patch as any).totalAmount !== undefined) {
-      const totalAmount = toNumber((patch as any).totalAmount);
-      if (totalAmount === null || totalAmount < 0) {
-        return res.status(400).json({ message: "monto total inválido (debe ser >= 0)" });
+      if (existing?.id && existing.id !== id) {
+        return res.status(409).json({
+          message: "Ya existe otra liquidación para ese mes/año",
+          code: "LIQUIDATION_EXISTS",
+          data: { liquidationId: existing.id },
+        });
       }
-      (patch as any).totalAmount = totalAmount;
     }
 
     const updated = await LiquidationModel.updatePartial(id, patch);
 
     if (!updated) {
-      return res.status(404).json({ message: "Liquidación no encontrada o sin cambios" });
+      return res.status(404).json({
+        message: "Liquidación no encontrada o sin cambios",
+      });
     }
 
     return res.status(200).json({
@@ -156,8 +265,25 @@ export async function updateLiquidation(req: Request, res: Response) {
 export async function hardDeleteLiquidation(req: Request, res: Response) {
   try {
     const id = toInt(req.params.id);
+
     if (id === null || id <= 0) {
       return res.status(400).json({ message: "ID inválido" });
+    }
+
+    const existing = await LiquidationModel.findById(id);
+
+    if (!existing) {
+      return res.status(404).json({ message: "Liquidación no encontrada" });
+    }
+
+    const assigned = await hasReservationsAssignedToLiquidation(id);
+
+    if (assigned) {
+      return res.status(409).json({
+        message:
+          "No se puede eliminar la liquidación porque tiene reservas asignadas.",
+        code: "LIQUIDATION_LOCKED_BY_ASSIGNED_RESERVATIONS",
+      });
     }
 
     const ok = await LiquidationModel.hardDelete(id);
@@ -166,11 +292,13 @@ export async function hardDeleteLiquidation(req: Request, res: Response) {
       return res.status(404).json({ message: "Liquidación no encontrada" });
     }
 
-    return res.status(200).json({ message: "Liquidación eliminada permanentemente" });
-  } catch (error) {
+    return res.status(200).json({
+      message: "Liquidación eliminada permanentemente",
+    });
+  } catch (error: any) {
     return res.status(500).json({
       message: "Error al eliminar permanentemente la liquidación",
-      error,
+      error: error?.message || error,
     });
   }
 }
@@ -181,14 +309,15 @@ export async function hardDeleteLiquidation(req: Request, res: Response) {
 
 export async function generateLiquidation(req: Request, res: Response) {
   try {
-    const month = toInt(req.body.month);
-    const year = toInt(req.body.year);
+    const month = toInt(req.body?.month);
+    const year = toInt(req.body?.year);
 
     if (month === null || month < 1 || month > 12) {
-      return res.status(400).json({ message: "month inválido (1-12)" });
+      return res.status(400).json({ message: "mes inválido (1-12)" });
     }
+
     if (year === null || year < 1900 || year > 3000) {
-      return res.status(400).json({ message: "year inválido (1900-3000)" });
+      return res.status(400).json({ message: "año inválido" });
     }
 
     const result = await LiquidationService.generate(month, year);

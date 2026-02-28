@@ -4,6 +4,15 @@ import type { ResultSetHeader } from "mysql2";
 
 const TABLE = "liquidaciones";
 
+function mapLiquidationRow(row: any): ILiquidation {
+    return {
+        id: Number(row.id),
+        month: Number(row.month),
+        year: Number(row.year),
+        totalAmount: Number(row.totalAmount) || 0,
+    };
+}
+
 const LiquidationModel = {
     /** List all liquidations */
     async find(exec: any = db): Promise<ILiquidation[]> {
@@ -17,7 +26,7 @@ const LiquidationModel = {
              ORDER BY anio DESC, mes DESC, id DESC`
         );
 
-        return rows as unknown as ILiquidation[];
+        return (rows as any[]).map(mapLiquidationRow);
     },
 
     /** Find by ID */
@@ -32,13 +41,18 @@ const LiquidationModel = {
                 anio        AS year,
                 monto_total AS totalAmount
              FROM ${TABLE}
-             WHERE id = :id`,
+             WHERE id = :id
+             LIMIT 1`,
             { id: Number(id) }
         );
 
-        const list = rows as ILiquidation[];
-        if (!list.length) return undefined;
-        return list[0];
+        const list = rows as any[];
+
+        if (!list.length) {
+            return undefined;
+        }
+
+        return mapLiquidationRow(list[0]);
     },
 
     /** Find by month/year */
@@ -54,32 +68,44 @@ const LiquidationModel = {
                 anio        AS year,
                 monto_total AS totalAmount
              FROM ${TABLE}
-             WHERE mes = :month AND anio = :year
+             WHERE mes = :month
+               AND anio = :year
              ORDER BY id DESC
              LIMIT 1`,
-            { month: Number(month), year: Number(year) }
+            {
+                month: Number(month),
+                year: Number(year),
+            }
         );
 
-        const list = rows as ILiquidation[];
-        if (!list.length) return undefined;
-        return list[0];
+        const list = rows as any[];
+
+        if (!list.length) {
+            return undefined;
+        }
+
+        return mapLiquidationRow(list[0]);
     },
 
     /** Create */
-    async create(liquidation: ILiquidation, exec: any = db): Promise<ILiquidation | undefined> {
+    async create(
+        liquidation: ILiquidation,
+        exec: any = db
+    ): Promise<ILiquidation | undefined> {
         const [res] = await exec.execute(
             `INSERT INTO ${TABLE}
                 (mes, anio, monto_total)
              VALUES
                 (:month, :year, :totalAmount)`,
             {
-                month: liquidation.month,
-                year: liquidation.year,
-                totalAmount: liquidation.totalAmount ?? 0,
+                month: Number(liquidation.month),
+                year: Number(liquidation.year),
+                totalAmount: Number(liquidation.totalAmount ?? 0),
             }
         );
 
         const insertId = (res as ResultSetHeader).insertId;
+
         return this.findById(insertId, exec);
     },
 
@@ -89,6 +115,14 @@ const LiquidationModel = {
         patch: Partial<ILiquidation>,
         exec: any = db
     ): Promise<ILiquidation | undefined> {
+        const numericId = Number(id);
+
+        const existing = await this.findById(numericId, exec);
+
+        if (!existing) {
+            return undefined;
+        }
+
         const allowed: (keyof ILiquidation)[] = [
             "month",
             "year",
@@ -97,11 +131,12 @@ const LiquidationModel = {
 
         const entries = Object.entries(patch).filter(
             ([key, value]) =>
-                allowed.includes(key as keyof ILiquidation) && value !== undefined
+                allowed.includes(key as keyof ILiquidation) &&
+                value !== undefined
         );
 
         if (!entries.length) {
-            return this.findById(id, exec);
+            return existing;
         }
 
         const columnMap: Record<string, string> = {
@@ -114,8 +149,11 @@ const LiquidationModel = {
             .map(([key]) => `${columnMap[key]} = :${key}`)
             .join(", ");
 
-        const params = Object.fromEntries(entries) as any;
-        params.id = Number(id);
+        const params: Record<string, any> = { id: numericId };
+
+        for (const [key, value] of entries) {
+            params[key] = value;
+        }
 
         await exec.execute(
             `UPDATE ${TABLE}
@@ -124,7 +162,7 @@ const LiquidationModel = {
             params
         );
 
-        return this.findById(id, exec);
+        return this.findById(numericId, exec);
     },
 
     /** Hard delete */

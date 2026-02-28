@@ -1,5 +1,7 @@
 // src/interfaces/ReservationInterface.ts
 
+export type ReservationStatus = "confirmada" | "cancelada" | "asistida" | "noshow" | "liquidada";
+
 /**
  * DB: reservas
  * - id
@@ -20,20 +22,20 @@
 export interface IReservation {
     id?: number;
 
-    employeeId: number;                // id_empleado
-    liquidationId?: number | null;     // id_liquidacion
-    priceHistoryId?: number | null;    // id_historico_precio
+    employeeId: number;                 // id_empleado
+    liquidationId?: number | null;      // id_liquidacion
+    priceHistoryId?: number | null;     // id_historico_precio
 
-    reservedAt: string | Date;         // fecha_reservada
+    reservedAt: string | Date;          // fecha_reservada
     cancelledAt?: string | Date | null; // fecha_cancelacion
 
-    starterFoodId?: number | null;     // id_comida_entrada
-    mainFoodId?: number | null;        // id_comida_principal
-    dessertFoodId?: number | null;     // id_comida_postre
-    drinkFoodId?: number | null;       // id_comida_bebida
+    starterFoodId?: number | null;      // id_comida_entrada
+    mainFoodId?: number | null;         // id_comida_principal
+    dessertFoodId?: number | null;      // id_comida_postre
+    drinkFoodId?: number | null;        // id_comida_bebida
 
-    qrCode?: string | null;            // codigo_qr
+    qrCode?: string | null;             // codigo_qr
 
-    reservationStatus?: number;        // estado_reserva
-    liquidationStatus?: number;        // estado_liquidacion
+    reservationStatus?: ReservationStatus; // estado_reserva
+    liquidationStatus?: number;            // estado_liquidacion
 }

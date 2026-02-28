@@ -12,6 +12,6 @@
         "sourceMap": true,
         "verbatimModuleSyntax": true
     },
-    "include": ["src/**/*"],
+    "include": ["src/**/*", "tsconfig.jest.json"],
     "exclude": ["dist", "node_modules"]
 }
