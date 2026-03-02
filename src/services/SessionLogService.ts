@@ -3,15 +3,21 @@ import type { Request } from "express";
 import SessionLogModel from "../models/SessionLogModel";
 
 function getClientIp(req: Request): string | null {
-  // Si estás detrás de proxy, poné: app.set('trust proxy', true)
   const xf = req.headers["x-forwarded-for"];
-  if (typeof xf === "string" && xf.length) return xf.split(",")[0].trim();
+  if (typeof xf === "string" && xf.length) {
+    return xf.split(",")[0].trim();
+  }
+
   return req.ip || null;
 }
 
 const SessionLogService = {
   generateSessionToken(): string {
-    return crypto.randomBytes(32).toString("hex"); // 64 chars
+    return crypto.randomBytes(32).toString("hex");
+  },
+
+  async findBySessionToken(sessionToken: string) {
+    return SessionLogModel.findBySessionToken(sessionToken);
   },
 
   async logLoginSuccess(params: {
