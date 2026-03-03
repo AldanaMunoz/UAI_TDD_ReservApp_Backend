@@ -15,6 +15,7 @@ export async function createUserBundle(payload: {
     user: Pick<IUser, "email" | "password"> & { activo?: 0 | 1 };
     person: Pick<IPerson, "nombre" | "apellido">;
     employee: Pick<IEmployee, "turno" | "tipo">;
+    roles: number[]; // array de ids de roles a asignar al empleado (ej: [1, 2])
 }) {
     const { user, person, employee } = payload;
 

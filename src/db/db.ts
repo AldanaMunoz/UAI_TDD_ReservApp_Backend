@@ -1,7 +1,7 @@
 import mysql from "mysql2/promise";
 import type { Pool } from "mysql2/promise";
 
-// Crear el pool de conexiones
+// Creamos el pool de conexiones
 const pool: Pool = mysql.createPool({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
@@ -13,9 +13,7 @@ const pool: Pool = mysql.createPool({
   namedPlaceholders: true,
 });
 
-/**
- * Probar la conexión a la DB
- */
+// Función para probar la conexión a la base de datos
 export async function connect() {
   const conn = await pool.getConnection();
   await conn.ping();
@@ -23,4 +21,4 @@ export async function connect() {
   console.log("✅ Conexión exitosa a la base de datos");
 }
 
-export default pool; // 👈 Exportamos el pool (con .execute, .query, etc.)
+export default pool;

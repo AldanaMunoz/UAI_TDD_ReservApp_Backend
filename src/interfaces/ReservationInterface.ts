@@ -13,7 +13,6 @@ export type ReservationStatus = "confirmada" | "cancelada" | "asistida" | "nosho
  * - id_comida_principal
  * - id_comida_postre
  * - id_comida_bebida
- * - codigo_qr
  * - estado_reserva
  * - estado_liquidacion
  * - id_historico_precio
@@ -33,8 +32,6 @@ export interface IReservation {
     mainFoodId?: number | null;         // id_comida_principal
     dessertFoodId?: number | null;      // id_comida_postre
     drinkFoodId?: number | null;        // id_comida_bebida
-
-    qrCode?: string | null;             // codigo_qr
 
     reservationStatus?: ReservationStatus; // estado_reserva
     liquidationStatus?: number;            // estado_liquidacion
