@@ -1,8 +1,13 @@
-import admin from "firebase-admin";
+import { cert, initializeApp, type ServiceAccount } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 import serviceAccount from "./uai-tdp-2025-backend-firebase-adminsdk.json";
 
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
-    });
+initializeApp({
+  credential: cert(serviceAccount as ServiceAccount),
+});
+
+const admin = {
+  auth: getAuth,
+};
 
 export default admin;
