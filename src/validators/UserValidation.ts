@@ -22,6 +22,11 @@ export const createUserValidationSchema = Joi.object({
   firebaseUID: Joi.string().trim().max(128).allow(null, "").optional().messages({
     "string.base": `"firebaseUID" debe ser texto`,
   }),
+  roleId: Joi.number().integer().positive().default(2).messages({
+    "number.base": `"roleId" debe ser numero`,
+    "number.integer": `"roleId" debe ser entero`,
+    "number.positive": `"roleId" debe ser positivo`,
+  }),
 }).options({
   abortEarly: false,
   stripUnknown: true,  // elimina campos no definidos en el schema
@@ -48,6 +53,7 @@ export const updateUserValidationSchema = Joi.object({
   password: Joi.string().min(6).max(64).optional(),
   activo: Joi.number().valid(0, 1).optional(),
   firebaseUID: Joi.string().trim().max(128).allow(null, "").optional(),
+  roleId: Joi.number().integer().positive().optional(),
 })
   .min(1) // al menos un campo
   .messages({

@@ -3,23 +3,24 @@ import { withTx } from "../db/tx";
 import UserModel from "../models/UserModel";
 import PersonModel from "../models/PersonModel";
 import EmployeeModel from "../models/EmployeeModel";
+import UserRoleModel from "../models/UserRoleModel";
 import type { IUser } from "../interfaces/UserInterface";
 import type { IPerson } from "../interfaces/PersonInterface";
 import type { IEmployee } from "../interfaces/EmployeeInterface";
 
 /**
- * Crea usuario, persona y empleado en una misma transacción.
- * También crea el usuario en Firebase y hace rollback si algo falla.
+ * Crea usuario, persona, empleado y roles en una misma transaccion.
+ * Tambien crea el usuario en Firebase y hace rollback si algo falla.
  */
 export async function createUserBundle(payload: {
     user: Pick<IUser, "email" | "password"> & { activo?: 0 | 1 };
     person: Pick<IPerson, "nombre" | "apellido">;
     employee: Pick<IEmployee, "turno" | "tipo">;
-    roles: number[]; // array de ids de roles a asignar al empleado (ej: [1, 2])
+    roles: number[];
 }) {
-    const { user, person, employee } = payload;
+    const { user, person, employee, roles } = payload;
+    const uniqueRoleIds = [...new Set(roles)];
 
-    // 1️⃣ Crear usuario en Firebase
     const fb = await admin.auth().createUser({
         email: user.email,
         password: user.password,
@@ -27,10 +28,14 @@ export async function createUserBundle(payload: {
     const firebaseUID = fb.uid;
 
     try {
-        // 2️⃣ Crear todo en una transacción
         const result = await withTx(async (conn) => {
             const newUser = await UserModel.create(
-                { ...user, activo: user.activo ?? 1, firebaseUID } as IUser,
+                {
+                    ...user,
+                    activo: user.activo ?? 1,
+                    firebaseUID,
+                    roleId: uniqueRoleIds[0],
+                } as IUser,
                 conn
             );
             if (!newUser) throw new Error("No se pudo crear usuario");
@@ -47,29 +52,43 @@ export async function createUserBundle(payload: {
             );
             if (!newEmployee) throw new Error("No se pudo crear empleado");
 
-            return { user: newUser, person: newPerson, employee: newEmployee, firebaseUID };
+            const assignedRoles = [];
+            for (const roleId of uniqueRoleIds) {
+                const assigned = await UserRoleModel.create(
+                    { userId: newUser.id!, roleId },
+                    conn
+                );
+                assignedRoles.push(assigned);
+            }
+
+            return {
+                user: newUser,
+                person: newPerson,
+                employee: newEmployee,
+                roles: assignedRoles,
+                firebaseUID,
+            };
         });
 
         return result;
     } catch (e) {
-        // Si algo falla en DB, borramos el usuario de Firebase
         try {
             await admin.auth().deleteUser(firebaseUID);
         } catch {
-            /* ignorar error si no existe en firebase */
+            // Ignorar error si el usuario no existe en Firebase.
         }
         throw e;
     }
 }
 
 /**
- * Actualiza usuario, persona y empleado en una misma transacción.
- * No toca Firebase (solo DB local).
+ * Actualiza usuario, persona y empleado en una misma transaccion.
+ * No toca Firebase salvo cambios de email/password.
  */
 export async function updateUserBundle(
     idUsuario: number,
     payload: {
-        user?: Partial<Pick<IUser, "email" | "password" | "activo">>;
+        user?: Partial<Pick<IUser, "email" | "password" | "activo" | "roleId">>;
         person?: Partial<Pick<IPerson, "nombre" | "apellido" | "activo">>;
         employee?: Partial<Pick<IEmployee, "turno" | "tipo">>;
     }
@@ -82,7 +101,6 @@ export async function updateUserBundle(
 
         const firebaseUID = dbUser.firebaseUID;
 
-        // Si cambia email o password, sincronizar con Firebase también
         if (firebaseUID && (userPatch?.email || userPatch?.password)) {
             await admin.auth().updateUser(firebaseUID, {
                 email: userPatch.email,
@@ -90,7 +108,6 @@ export async function updateUserBundle(
             });
         }
 
-        // Persona
         const persons = await PersonModel.findByUserId(idUsuario, conn);
         if (!persons.length) throw new Error("Persona asociada no encontrada");
         const dbPerson = persons[0];
@@ -99,7 +116,6 @@ export async function updateUserBundle(
             ? await EmployeeModel.findByPersona(dbPerson.id!, conn)
             : [];
 
-        // Actualizar en DB (usuario / persona / empleado)
         let updatedUser = dbUser;
         let updatedPerson = dbPerson;
         let updatedEmployee = employees[0];
@@ -130,25 +146,21 @@ export async function updateUserBundle(
     });
 }
 
-
 /**
- * Elimina usuario + persona + empleado(s) en una misma transacción.
- * Luego elimina el usuario en Firebase (si tiene firebaseUID).
+ * Elimina usuario, persona y empleados en una misma transaccion.
+ * Luego elimina el usuario en Firebase si tiene firebaseUID.
  */
 export async function deleteUserBundle(idUsuario: number) {
     const { firebaseUID } = await withTx(async (conn) => {
-        // Usuario Base
         const user = await UserModel.findById(idUsuario, conn);
         if (!user) throw new Error("Usuario no encontrado");
 
         const firebaseUID = user.firebaseUID || null;
 
-        // Persona asociada
         const persons = await PersonModel.findByUserId(idUsuario, conn);
         if (!persons.length) throw new Error("Persona asociada no encontrada");
         const person = persons[0];
 
-        // Empleado asociado a Persona
         const employees = await EmployeeModel.findByPersona(person.id!, conn);
 
         for (const emp of employees) {
@@ -164,14 +176,12 @@ export async function deleteUserBundle(idUsuario: number) {
         return { firebaseUID };
     });
 
-    // Eliminar en Firebase (fuera de la tx)
     if (firebaseUID) {
         try {
             await admin.auth().deleteUser(firebaseUID);
         } catch (e: any) {
             const code = e?.errorInfo?.code || e?.code;
             if (code !== "auth/user-not-found") {
-                // si querés podés loguear
                 console.error("Error eliminando usuario en Firebase:", e);
             }
         }

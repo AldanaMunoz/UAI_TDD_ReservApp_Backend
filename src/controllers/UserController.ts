@@ -35,7 +35,7 @@ export async function getUserById(req: Request, res: Response) {
 /** POST /users */
 export async function createUser(req: Request, res: Response) {
   try {
-    const { email, password, activo = 1 } = req.body as Partial<IUser>;
+    const { email, password, activo = 1, roleId = 2 } = req.body as Partial<IUser>;
 
     if (!email || !password) {
       return res.status(400).json({ message: "email y contraseña son obligatorios" });
@@ -51,6 +51,7 @@ export async function createUser(req: Request, res: Response) {
         password,
         activo: Number(activo) ? 1 : 0,
         firebaseUID: userRecord.uid,
+        roleId,
       } as IUser);
 
       return res.status(201).json({
@@ -245,6 +246,7 @@ export async function loginLocalFirebase(req: Request, res: Response) {
         email: localUser.email,
         activo: localUser.activo,
         firebaseUID: localUser.firebaseUID || firebaseLocalId,
+        roleId: localUser.roleId,
       },
       firebase: {
         idToken: fbResp.data.idToken,

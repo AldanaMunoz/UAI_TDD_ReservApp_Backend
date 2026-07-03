@@ -37,17 +37,17 @@ export async function getSeasonById(req: Request, res: Response) {
 
 export async function createSeason(req: Request, res: Response) {
     try {
-        const { name, year, startDate, endDate } = req.body as Partial<ISeason>;
+        const { stationId, year, startDate, endDate } = req.body as Partial<ISeason>;
 
         // Seguridad extra (además del Joi)
-        if (!name || year === undefined || !startDate || !endDate) {
+        if (!stationId || year === undefined || !startDate || !endDate) {
             return res.status(400).json({
-                message: "name, year, startDate y endDate son obligatorios",
+                message: "stationId, year, startDate y endDate son obligatorios",
             });
         }
 
         const created = await SeasonModel.create({
-            name,
+            stationId,
             year,
             startDate,
             endDate,

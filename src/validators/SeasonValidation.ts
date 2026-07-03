@@ -2,7 +2,7 @@
 import Joi from "joi";
 
 export const createSeasonValidationSchema = Joi.object({
-  name: Joi.string().max(255).required(),
+  stationId: Joi.number().integer().positive().required(),
   year: Joi.number().integer().min(1900).max(3000).required(),
   startDate: Joi.date().iso().required(),
   endDate: Joi.date().iso().min(Joi.ref("startDate")).required().messages({
@@ -15,7 +15,7 @@ export const createSeasonValidationSchema = Joi.object({
 });
 
 export const updateSeasonValidationSchema = Joi.object({
-  name: Joi.string().max(255),
+  stationId: Joi.number().integer().positive(),
   year: Joi.number().integer().min(1900).max(3000),
   startDate: Joi.date().iso(),
   endDate: Joi.date().iso().min(Joi.ref("startDate")).messages({

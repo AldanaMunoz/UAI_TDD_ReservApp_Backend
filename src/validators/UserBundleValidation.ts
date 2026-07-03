@@ -35,6 +35,15 @@ export const createUserBundleValidationSchema = Joi.object({
     user: createUserValidationSchema.required(),
     person: createPersonValidationSchema.required(),
     employee: createEmployeeForBundleSchema.required(),
+    roles: Joi.array()
+        .items(Joi.number().integer().positive())
+        .min(1)
+        .unique()
+        .required()
+        .messages({
+            "array.min": `"roles" debe tener al menos un rol`,
+            "any.required": `"roles" es requerido`,
+        }),
 }).options({
     abortEarly: false,
     stripUnknown: true,

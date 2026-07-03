@@ -7,7 +7,7 @@ const UserModel = {
     /** Listar */
     async find(exec: any = db): Promise<IUser[]> {
         const [rows] = await exec.execute(
-            `SELECT id, email, password, activo, firebaseUID
+            `SELECT id, email, password, activo, firebaseUID, id_rol AS roleId
              FROM usuarios
              ORDER BY id DESC`
         );
@@ -17,7 +17,7 @@ const UserModel = {
     /** Por ID */
     async findById(id: number | string, exec: any = db): Promise<IUser | undefined> {
         const [rows] = await exec.execute(
-            `SELECT id, email, password, activo, firebaseUID
+            `SELECT id, email, password, activo, firebaseUID, id_rol AS roleId
              FROM usuarios
              WHERE id = :id`,
             { id: Number(id) }
@@ -28,7 +28,7 @@ const UserModel = {
     /** Por email */
     async findOneByEmail(email: string, exec: any = db): Promise<IUser | undefined> {
         const [rows] = await exec.execute(
-            `SELECT id, email, password, activo, firebaseUID
+            `SELECT id, email, password, activo, firebaseUID, id_rol AS roleId
              FROM usuarios
              WHERE email = :email`,
             { email }
@@ -39,7 +39,7 @@ const UserModel = {
     /** Por Firebase UID */
     async findOneByFirebaseUID(firebaseUID: string, exec: any = db): Promise<IUser | undefined> {
         const [rows] = await exec.execute(
-            `SELECT id, email, password, activo, firebaseUID
+            `SELECT id, email, password, activo, firebaseUID, id_rol AS roleId
              FROM usuarios
              WHERE firebaseUID = :firebaseUID`,
             { firebaseUID }
@@ -52,20 +52,21 @@ const UserModel = {
         const hashed = await bcrypt.hash(user.password, 10);
 
         const [res] = await exec.execute(
-            `INSERT INTO usuarios (email, password, activo, firebaseUID)
-             VALUES (:email, :password, :activo, :firebaseUID)`,
+            `INSERT INTO usuarios (email, password, activo, firebaseUID, id_rol)
+             VALUES (:email, :password, :activo, :firebaseUID, :roleId)`,
             {
                 email: user.email,
                 password: hashed,
                 activo: user.activo ?? 1,
                 firebaseUID: user.firebaseUID ?? null,
+                roleId: user.roleId ?? 2,
             }
         );
 
         const insertId = (res as ResultSetHeader).insertId;
 
         const [rows] = await exec.execute(
-            `SELECT id, email, password, activo, firebaseUID
+            `SELECT id, email, password, activo, firebaseUID, id_rol AS roleId
              FROM usuarios
              WHERE id = :id`,
             { id: insertId }
@@ -80,7 +81,14 @@ const UserModel = {
         patch: Partial<IUser>,
         exec: any = db
     ): Promise<IUser | undefined> {
-        const allowed = ["email", "password", "activo", "firebaseUID"];
+        const columnMap: Record<string, string> = {
+            email: "email",
+            password: "password",
+            activo: "activo",
+            firebaseUID: "firebaseUID",
+            roleId: "id_rol",
+        };
+        const allowed = Object.keys(columnMap);
         const entries = Object.entries(patch).filter(
             ([k, v]) => allowed.includes(k) && v !== undefined
         );
@@ -91,7 +99,7 @@ const UserModel = {
             patch.password = await bcrypt.hash(patch.password, 10);
         }
 
-        const setSql = entries.map(([k]) => `${k} = :${k}`).join(", ");
+        const setSql = entries.map(([k]) => `${columnMap[k]} = :${k}`).join(", ");
         const params = Object.fromEntries(entries);
         (params as any).id = Number(id);
 

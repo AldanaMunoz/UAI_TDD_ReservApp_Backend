@@ -71,9 +71,9 @@ SeasonRoutes.get(
  *           schema:
  *             type: object
  *             properties:
- *               name:
- *                 type: string
- *                 description: Nombre de la temporada
+ *               stationId:
+ *                 type: integer
+ *                 description: ID de la estacion
  *               year:
  *                 type: integer
  *                 description: Año de la temporada
@@ -86,7 +86,7 @@ SeasonRoutes.get(
  *                 format: date
  *                 description: Fecha de fin (YYYY-MM-DD)
  *             required:
- *               - name
+ *               - stationId
  *               - year
  *               - startDate
  *               - endDate
@@ -124,8 +124,8 @@ SeasonRoutes.post(
  *           schema:
  *             type: object
  *             properties:
- *               name:
- *                 type: string
+ *               stationId:
+ *                 type: integer
  *               year:
  *                 type: integer
  *               startDate:

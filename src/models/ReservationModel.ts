@@ -11,7 +11,7 @@ const ReservationModel = {
     const [rows] = await exec.execute(
       `SELECT
           id,
-          id_empleado         AS employeeId,
+          id_usuario          AS userId,
           id_liquidacion      AS liquidationId,
           fecha_reservada     AS reservedAt,
           fecha_cancelacion   AS cancelledAt,
@@ -19,6 +19,7 @@ const ReservationModel = {
           id_comida_principal AS mainFoodId,
           id_comida_postre    AS dessertFoodId,
           id_comida_bebida    AS drinkFoodId,
+          codigo_qr           AS qrCode,
           estado_reserva      AS reservationStatus,
           estado_liquidacion  AS liquidationStatus,
           id_historico_precio AS priceHistoryId
@@ -34,7 +35,7 @@ const ReservationModel = {
     const [rows] = await exec.execute(
       `SELECT
           id,
-          id_empleado         AS employeeId,
+          id_usuario          AS userId,
           id_liquidacion      AS liquidationId,
           fecha_reservada     AS reservedAt,
           fecha_cancelacion   AS cancelledAt,
@@ -42,6 +43,7 @@ const ReservationModel = {
           id_comida_principal AS mainFoodId,
           id_comida_postre    AS dessertFoodId,
           id_comida_bebida    AS drinkFoodId,
+          codigo_qr           AS qrCode,
           estado_reserva      AS reservationStatus,
           estado_liquidacion  AS liquidationStatus,
           id_historico_precio AS priceHistoryId
@@ -59,7 +61,7 @@ const ReservationModel = {
     const [res] = await exec.execute(
       `INSERT INTO ${TABLE}
         (
-          id_empleado,
+          id_usuario,
           id_liquidacion,
           fecha_reservada,
           fecha_cancelacion,
@@ -74,7 +76,7 @@ const ReservationModel = {
         )
        VALUES
         (
-          :employeeId,
+          :userId,
           :liquidationId,
           :reservedAt,
           :cancelledAt,
@@ -88,7 +90,7 @@ const ReservationModel = {
           :priceHistoryId
         )`,
       {
-        employeeId: reservation.employeeId,
+        userId: reservation.userId,
         liquidationId: reservation.liquidationId ?? null,
         reservedAt: reservation.reservedAt,
         cancelledAt: reservation.cancelledAt ?? null,
@@ -96,7 +98,8 @@ const ReservationModel = {
         mainFoodId: reservation.mainFoodId ?? null,
         dessertFoodId: reservation.dessertFoodId ?? null,
         drinkFoodId: reservation.drinkFoodId ?? null,
-        reservationStatus: reservation.reservationStatus ?? 0,
+        qrCode: reservation.qrCode ?? null,
+        reservationStatus: reservation.reservationStatus ?? "confirmada",
         liquidationStatus: reservation.liquidationStatus ?? 0,
         priceHistoryId: reservation.priceHistoryId ?? null,
       }
@@ -113,7 +116,7 @@ const ReservationModel = {
     exec: any = db
   ): Promise<IReservation | undefined> {
     const allowed: (keyof IReservation)[] = [
-      "employeeId",
+      "userId",
       "liquidationId",
       "reservedAt",
       "cancelledAt",
@@ -121,6 +124,7 @@ const ReservationModel = {
       "mainFoodId",
       "dessertFoodId",
       "drinkFoodId",
+      "qrCode",
       "reservationStatus",
       "liquidationStatus",
       "priceHistoryId",
@@ -135,7 +139,7 @@ const ReservationModel = {
     }
 
     const columnMap: Record<string, string> = {
-      employeeId: "id_empleado",
+      userId: "id_usuario",
       liquidationId: "id_liquidacion",
       reservedAt: "fecha_reservada",
       cancelledAt: "fecha_cancelacion",
@@ -143,6 +147,7 @@ const ReservationModel = {
       mainFoodId: "id_comida_principal",
       dessertFoodId: "id_comida_postre",
       drinkFoodId: "id_comida_bebida",
+      qrCode: "codigo_qr",
       reservationStatus: "estado_reserva",
       liquidationStatus: "estado_liquidacion",
       priceHistoryId: "id_historico_precio",

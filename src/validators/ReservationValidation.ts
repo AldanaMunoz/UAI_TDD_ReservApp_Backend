@@ -16,7 +16,7 @@ const liquidationStatusSchema = Joi.number().integer().valid(0, 1);
 
 /** POST /reservations */
 export const createReservationValidationSchema = Joi.object({
-  employeeId: Joi.number().integer().positive().required(),
+  userId: Joi.number().integer().positive().required(),
   liquidationId: positiveIntOrNull.optional(),
   priceHistoryId: Joi.number().integer().positive().allow(null).optional(),
 
@@ -27,6 +27,7 @@ export const createReservationValidationSchema = Joi.object({
   mainFoodId: positiveIntOrNull.optional(),
   dessertFoodId: positiveIntOrNull.optional(),
   drinkFoodId: positiveIntOrNull.optional(),
+  qrCode: Joi.string().trim().max(255).allow(null, "").optional(),
 
   reservationStatus: reservationStatusSchema.optional(),
   liquidationStatus: liquidationStatusSchema.optional(),
@@ -38,7 +39,7 @@ export const createReservationValidationSchema = Joi.object({
 
 /** PATCH /reservations/:id */
 export const updateReservationValidationSchema = Joi.object({
-  employeeId: Joi.number().integer().positive().optional(),
+  userId: Joi.number().integer().positive().optional(),
   liquidationId: positiveIntOrNull.optional(),
   priceHistoryId: Joi.number().integer().positive().allow(null).optional(),
 
@@ -49,6 +50,7 @@ export const updateReservationValidationSchema = Joi.object({
   mainFoodId: positiveIntOrNull.optional(),
   dessertFoodId: positiveIntOrNull.optional(),
   drinkFoodId: positiveIntOrNull.optional(),
+  qrCode: Joi.string().trim().max(255).allow(null, "").optional(),
 
   reservationStatus: reservationStatusSchema.optional(),
   liquidationStatus: liquidationStatusSchema.optional(),

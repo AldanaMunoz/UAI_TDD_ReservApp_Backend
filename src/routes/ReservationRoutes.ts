@@ -111,11 +111,12 @@ ReservationRoutes.get("/:id", ReservationController.getReservationById);
  *           schema:
  *             type: object
  *             properties:
- *               employeeId:
+ *               userId:
  *                 type: integer
- *                 description: ID del empleado (FK a empleados)
+ *                 description: ID del usuario (FK a usuarios)
  *               liquidationId:
- *                 type: integer
+ *                 type: string
+ *                 enum: [confirmada, cancelada, asistio, noshow, liquidada]
  *                 nullable: true
  *                 description: ID de la liquidación (FK a liquidaciones)
  *               reservedAt:
@@ -145,7 +146,7 @@ ReservationRoutes.get("/:id", ReservationController.getReservationById);
  *               liquidationStatus:
  *                 type: integer
  *             required:
- *               - employeeId
+ *               - userId
  *               - reservedAt
  *     responses:
  *       201:

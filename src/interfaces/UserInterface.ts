@@ -3,5 +3,6 @@ export interface IUser {
     email: string;
     password: string;
     activo: number; // 1 activo, 0 inactivo
-    firebaseUID?: string; // único, puede ser null
+    firebaseUID?: string | null; // unico, puede ser null
+    roleId?: number; // DB: id_rol
 }

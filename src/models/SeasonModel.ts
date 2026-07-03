@@ -1,5 +1,5 @@
 // src/models/SeasonModel.ts
-import type { RowDataPacket, ResultSetHeader } from "mysql2/promise";
+import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import pool from "../db/db";
 import type { ISeason } from "../interfaces/SeasonInterface";
 
@@ -8,6 +8,7 @@ const TABLE = "temporadas";
 function mapRow(row: any): ISeason {
     return {
         id: row.id,
+        stationId: row.stationId,
         name: row.name,
         year: row.year,
         startDate: row.startDate,
@@ -19,12 +20,14 @@ export async function find(): Promise<ISeason[]> {
     const [rows] = await pool.execute<RowDataPacket[]>(
         `
         SELECT
-            id,
-            nombre       AS name,
-            anio         AS year,
-            fecha_inicio AS startDate,
-            fecha_fin    AS endDate
-        FROM ${TABLE}
+            t.id,
+            t.id_estacion AS stationId,
+            e.nombre      AS name,
+            t.anio        AS year,
+            t.fecha_inicio AS startDate,
+            t.fecha_fin    AS endDate
+        FROM ${TABLE} t
+        INNER JOIN estaciones e ON e.id = t.id_estacion
         ORDER BY year DESC, startDate ASC
         `
     );
@@ -35,13 +38,15 @@ export async function findById(id: number): Promise<ISeason | null> {
     const [rows] = await pool.execute<RowDataPacket[]>(
         `
         SELECT
-            id,
-            nombre       AS name,
-            anio         AS year,
-            fecha_inicio AS startDate,
-            fecha_fin    AS endDate
-        FROM ${TABLE}
-        WHERE id = ?
+            t.id,
+            t.id_estacion AS stationId,
+            e.nombre      AS name,
+            t.anio        AS year,
+            t.fecha_inicio AS startDate,
+            t.fecha_fin    AS endDate
+        FROM ${TABLE} t
+        INNER JOIN estaciones e ON e.id = t.id_estacion
+        WHERE t.id = ?
         `,
         [id]
     );
@@ -52,13 +57,13 @@ export async function findById(id: number): Promise<ISeason | null> {
 export async function create(data: ISeason): Promise<ISeason> {
     const [result] = await pool.execute<ResultSetHeader>(
         `
-        INSERT INTO ${TABLE} (nombre, anio, fecha_inicio, fecha_fin)
+        INSERT INTO ${TABLE} (id_estacion, anio, fecha_inicio, fecha_fin)
         VALUES (?, ?, ?, ?)
         `,
-        [data.name, data.year, data.startDate, data.endDate]
+        [data.stationId, data.year, data.startDate, data.endDate]
     );
 
-    const insertId = (result as ResultSetHeader).insertId;
+    const insertId = result.insertId;
     const created = await findById(insertId);
     if (!created) {
         throw new Error("Failed to fetch created season");
@@ -73,9 +78,9 @@ export async function updatePartial(
     const fields: string[] = [];
     const values: any[] = [];
 
-    if (patch.name !== undefined) {
-        fields.push("nombre = ?");
-        values.push(patch.name);
+    if (patch.stationId !== undefined) {
+        fields.push("id_estacion = ?");
+        values.push(patch.stationId);
     }
     if (patch.year !== undefined) {
         fields.push("anio = ?");
@@ -91,7 +96,6 @@ export async function updatePartial(
     }
 
     if (fields.length === 0) {
-        // Nada para actualizar
         return null;
     }
 
@@ -106,12 +110,11 @@ export async function updatePartial(
         values
     );
 
-    if ((result as ResultSetHeader).affectedRows === 0) {
+    if (result.affectedRows === 0) {
         return null;
     }
 
-    const updated = await findById(id);
-    return updated;
+    return await findById(id);
 }
 
 export async function hardDelete(id: number): Promise<boolean> {
@@ -122,7 +125,7 @@ export async function hardDelete(id: number): Promise<boolean> {
         `,
         [id]
     );
-    return (result as ResultSetHeader).affectedRows > 0;
+    return result.affectedRows > 0;
 }
 
 export default {
