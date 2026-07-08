@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import path from "node:path";
 import { connect } from "./db/db";
 import routes from "./routes";
 import swaggerUi from 'swagger-ui-express';
@@ -29,11 +30,12 @@ app.use(
             return cb(new Error("CORS not allowed"));
         },
         credentials: true, // necesario si usás cookies
-        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allowedHeaders: ["Content-Type", "Authorization"],
     })
 );
 
+app.use("/uploads", express.static(path.resolve("uploads")));
 app.use(express.json());
 
 async function startServer() {
