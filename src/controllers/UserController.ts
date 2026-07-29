@@ -238,15 +238,17 @@ export async function loginLocalFirebase(req: Request, res: Response) {
       });
     }
 
+    const profile = await UserModel.findProfileById(localUser.id!);
+
     return res.status(200).json({
       message: "Inicio de sesión OK (local + firebase)",
       sessionToken,
-      user: {
+      user: profile || {
         id: localUser.id,
         email: localUser.email,
         activo: localUser.activo,
         firebaseUID: localUser.firebaseUID || firebaseLocalId,
-        roleId: localUser.roleId,
+        roles: localUser.roleId === 1 ? ["Administrador"] : ["Empleado"],
       },
       firebase: {
         idToken: fbResp.data.idToken,
@@ -270,6 +272,10 @@ export async function loginLocalFirebase(req: Request, res: Response) {
       error: error?.message || error,
     });
   }
+}
+
+export async function getCurrentAuthenticatedUser(req: Request, res: Response) {
+  return res.status(200).json({ valid: true, user: (req as any).user });
 }
 
 /**
@@ -391,4 +397,5 @@ export default {
   softDeleteUser,
   loginLocalFirebase,
   logoutFirebase,
+  getCurrentAuthenticatedUser,
 };

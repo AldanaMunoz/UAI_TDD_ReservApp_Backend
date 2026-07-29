@@ -106,6 +106,72 @@ export async function getLiquidationById(req: Request, res: Response) {
   }
 }
 
+async function getLiquidationReservationDetails(id: number) {
+  const [rows] = await db.execute(
+    `SELECT
+      r.id AS reservationId,
+      DATE_FORMAT(r.fecha_reservada, '%Y-%m-%d') AS reservedDate,
+      r.estado_reserva AS status,
+      COALESCE(p.nombre, '') AS employeeName,
+      COALESCE(p.apellido, '') AS employeeLastName,
+      COALESCE(e.tipo, 'interno') AS employeeType,
+      COALESCE(hp.precio, 0) AS basePrice,
+      COALESCE(hp.precio, 0) AS appliedPrice
+     FROM reservas r
+     LEFT JOIN usuarios u ON u.id = r.id_usuario
+     LEFT JOIN personas p ON p.id_usuario = u.id
+     LEFT JOIN empleados e ON e.id_persona = p.id
+     LEFT JOIN historicos_precios hp ON hp.id = r.id_historico_precio
+     WHERE r.id_liquidacion = :id
+     ORDER BY r.fecha_reservada, r.id`,
+    { id }
+  );
+  return rows as any[];
+}
+
+export async function getLiquidationDetails(req: Request, res: Response) {
+  const id = toInt(req.params.id);
+  if (id === null || id <= 0) return res.status(400).json({ message: "ID invalido" });
+  try {
+    const liquidation = await LiquidationModel.findById(id);
+    if (!liquidation) return res.status(404).json({ message: "Liquidacion no encontrada" });
+    const reservations = await getLiquidationReservationDetails(id);
+    return res.status(200).json({ liquidation, reservations });
+  } catch (error) {
+    return res.status(500).json({ message: "Error al obtener el detalle", error });
+  }
+}
+
+function xmlCell(value: unknown, numeric = false) {
+  const escaped = String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  return `<Cell><Data ss:Type="${numeric ? "Number" : "String"}">${escaped}</Data></Cell>`;
+}
+
+export async function exportLiquidationExcel(req: Request, res: Response) {
+  const id = toInt(req.params.id);
+  if (id === null || id <= 0) return res.status(400).json({ message: "ID invalido" });
+  try {
+    const liquidation = await LiquidationModel.findById(id);
+    if (!liquidation) return res.status(404).json({ message: "Liquidacion no encontrada" });
+    const reservations = await getLiquidationReservationDetails(id);
+    const header = ["Reserva", "Fecha", "Nombre", "Apellido", "Tipo", "Estado", "Precio aplicado"];
+    const rows = reservations.map((item) => `<Row>${[
+      xmlCell(item.reservationId, true), xmlCell(item.reservedDate), xmlCell(item.employeeName),
+      xmlCell(item.employeeLastName), xmlCell(item.employeeType), xmlCell(item.status),
+      xmlCell(Number(item.appliedPrice), true),
+    ].join("")}</Row>`).join("");
+    const workbook = `<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="Liquidacion"><Table><Row>${header.map((value) => xmlCell(value)).join("")}</Row>${rows}</Table></Worksheet></Workbook>`;
+    res.setHeader("Content-Type", "application/vnd.ms-excel; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="liquidacion-${liquidation.year}-${String(liquidation.month).padStart(2, "0")}.xls"`);
+    return res.status(200).send(workbook);
+  } catch (error) {
+    return res.status(500).json({ message: "Error al exportar la liquidacion", error });
+  }
+}
+
 export async function createLiquidation(req: Request, res: Response) {
   try {
     const month = toInt(req.body?.month);
@@ -345,6 +411,8 @@ export async function generateLiquidation(req: Request, res: Response) {
 export default {
   getAllLiquidations,
   getLiquidationById,
+  getLiquidationDetails,
+  exportLiquidationExcel,
   createLiquidation,
   updateLiquidation,
   hardDeleteLiquidation,

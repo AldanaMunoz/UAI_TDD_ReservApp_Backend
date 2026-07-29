@@ -3,7 +3,19 @@ import {
     createUserBundle,
     updateUserBundle,
     deleteUserBundle,
+    listUserBundles,
 } from "../services/UserBundleService";
+
+export async function listUserBundlesController(_req: Request, res: Response) {
+    try {
+        return res.status(200).json(await listUserBundles());
+    } catch (error: any) {
+        return res.status(500).json({
+            message: "Error al listar usuarios",
+            error: error?.message || error,
+        });
+    }
+}
 
 /**
  * POST /user-bundle
@@ -81,6 +93,7 @@ export async function deleteUserBundleController(req: Request, res: Response) {
 }
 
 export default {
+    listUserBundlesController,
     createUserBundleController,
     updateUserBundleController,
     deleteUserBundleController,

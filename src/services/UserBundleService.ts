@@ -7,6 +7,30 @@ import UserRoleModel from "../models/UserRoleModel";
 import type { IUser } from "../interfaces/UserInterface";
 import type { IPerson } from "../interfaces/PersonInterface";
 import type { IEmployee } from "../interfaces/EmployeeInterface";
+import db from "../db/db";
+
+export async function listUserBundles() {
+    const [rows] = await db.execute(
+        `SELECT
+            u.id, u.email, u.activo,
+            p.nombre, p.apellido,
+            e.turno, e.tipo,
+            COALESCE(GROUP_CONCAT(DISTINCT r.nombre ORDER BY r.nombre SEPARATOR ', '), '') AS roles,
+            COALESCE(GROUP_CONCAT(DISTINCT ur.id_rol ORDER BY ur.id_rol), '') AS roleIds
+         FROM usuarios u
+         LEFT JOIN personas p ON p.id_usuario = u.id
+         LEFT JOIN empleados e ON e.id_persona = p.id
+         LEFT JOIN usuarios_roles ur ON ur.id_usuario = u.id
+         LEFT JOIN roles r ON r.id = ur.id_rol
+         GROUP BY u.id, u.email, u.activo, p.nombre, p.apellido, e.turno, e.tipo
+         ORDER BY u.id DESC`
+    );
+
+    return (rows as any[]).map((row) => ({
+        ...row,
+        roleIds: row.roleIds ? String(row.roleIds).split(",").map(Number) : [],
+    }));
+}
 
 /**
  * Crea usuario, persona, empleado y roles en una misma transaccion.
@@ -91,9 +115,10 @@ export async function updateUserBundle(
         user?: Partial<Pick<IUser, "email" | "password" | "activo" | "roleId">>;
         person?: Partial<Pick<IPerson, "nombre" | "apellido" | "activo">>;
         employee?: Partial<Pick<IEmployee, "turno" | "tipo">>;
+        roles?: number[];
     }
 ) {
-    const { user: userPatch, person: personPatch, employee: employeePatch } = payload;
+    const { user: userPatch, person: personPatch, employee: employeePatch, roles } = payload;
 
     return await withTx(async (conn) => {
         const dbUser = await UserModel.findById(idUsuario, conn);
@@ -142,7 +167,21 @@ export async function updateUserBundle(
             updatedEmployee = emp;
         }
 
-        return { user: updatedUser, person: updatedPerson, employee: updatedEmployee };
+        let assignedRoles = await UserRoleModel.findByUserId(idUsuario, conn);
+        if (roles?.length) {
+            const uniqueRoleIds = [...new Set(roles)];
+            await conn.execute(
+                `DELETE FROM usuarios_roles WHERE id_usuario = :idUsuario`,
+                { idUsuario }
+            );
+            for (const roleId of uniqueRoleIds) {
+                await UserRoleModel.create({ userId: idUsuario, roleId }, conn);
+            }
+            await UserModel.updatePartial(idUsuario, { roleId: uniqueRoleIds[0] } as any, conn);
+            assignedRoles = await UserRoleModel.findByUserId(idUsuario, conn);
+        }
+
+        return { user: updatedUser, person: updatedPerson, employee: updatedEmployee, roles: assignedRoles };
     });
 }
 

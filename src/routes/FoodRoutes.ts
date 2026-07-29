@@ -2,6 +2,7 @@
 import express from "express";
 import FoodController from "../controllers/FoodController";
 import { uploadFoodImage } from "../middleware/FoodImageUploadMiddleware";
+import { requireRole } from "../middleware/AuthMiddleware";
 import validationMiddleware from "../middleware/ValidatorMiddleware";
 import {
     createFoodValidationSchema,
@@ -29,6 +30,8 @@ FoodRoutes.get(
     "/",
     FoodController.getAllFoods
 );
+
+FoodRoutes.get("/tipo/:type", FoodController.getFoodsByType);
 
 /**
  * @openapi
@@ -87,6 +90,7 @@ FoodRoutes.get(
  */
 FoodRoutes.patch(
     "/:id/image",
+    requireRole("Administrador"),
     uploadFoodImage,
     FoodController.updateFoodImage
 );
@@ -112,6 +116,7 @@ FoodRoutes.patch(
  */
 FoodRoutes.delete(
     "/:id/image",
+    requireRole("Administrador"),
     FoodController.deleteFoodImage
 );
 
@@ -151,6 +156,7 @@ FoodRoutes.delete(
  */
 FoodRoutes.post(
     "/",
+    requireRole("Administrador"),
     validationMiddleware(createFoodValidationSchema),
     FoodController.createFood
 );
@@ -195,6 +201,7 @@ FoodRoutes.post(
  */
 FoodRoutes.patch(
     "/:id",
+    requireRole("Administrador"),
     validationMiddleware(updateFoodValidationSchema),
     FoodController.updateFood
 );
@@ -220,6 +227,7 @@ FoodRoutes.patch(
  */
 FoodRoutes.delete(
     "/hard/:id",
+    requireRole("Administrador"),
     FoodController.hardDeleteFood
 );
 

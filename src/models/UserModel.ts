@@ -4,6 +4,37 @@ import type { ResultSetHeader } from "mysql2";
 import bcrypt from "bcrypt";
 
 const UserModel = {
+    async findProfileById(id: number | string, exec: any = db): Promise<any | undefined> {
+        const [rows] = await exec.execute(
+            `SELECT
+                u.id,
+                u.email,
+                u.activo,
+                u.firebaseUID,
+                p.nombre,
+                p.apellido,
+                e.turno,
+                e.tipo,
+                GROUP_CONCAT(DISTINCT r.nombre ORDER BY r.nombre SEPARATOR ',') AS roles
+             FROM usuarios u
+             LEFT JOIN personas p ON p.id_usuario = u.id
+             LEFT JOIN empleados e ON e.id_persona = p.id
+             LEFT JOIN usuarios_roles ur ON ur.id_usuario = u.id
+             LEFT JOIN roles r ON r.id = ur.id_rol
+             WHERE u.id = :id
+             GROUP BY u.id, u.email, u.activo, u.firebaseUID,
+                      p.nombre, p.apellido, e.turno, e.tipo`,
+            { id: Number(id) }
+        );
+
+        const profile = (rows as any[])[0];
+        if (!profile) return undefined;
+        return {
+            ...profile,
+            roles: profile.roles ? String(profile.roles).split(",") : [],
+        };
+    },
+
     /** Listar */
     async find(exec: any = db): Promise<IUser[]> {
         const [rows] = await exec.execute(

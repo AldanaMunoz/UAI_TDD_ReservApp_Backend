@@ -8,6 +8,8 @@ import controllers from "../controllers/UserBundleController";
 
 const router = Router();
 
+router.get("/", controllers.listUserBundlesController);
+
 /* ===========================================================
    CRUD (PROTEGIDAS POR AUTH EN ROUTER PRINCIPAL)
    =========================================================== */

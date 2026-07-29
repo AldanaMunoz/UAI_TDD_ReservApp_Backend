@@ -22,6 +22,24 @@ const FoodModel = {
         return rows as unknown as IFood[];
     },
 
+    async findByTypeName(typeName: string, exec: any = db): Promise<IFood[]> {
+        const [rows] = await exec.execute(
+            `SELECT
+                c.id,
+                c.id_comida_tipo AS foodTypeId,
+                c.nombre AS name,
+                c.es_especial AS isSpecial,
+                c.url_imagen AS imageUrl,
+                c.activa AS isActive
+             FROM ${TABLE} c
+             INNER JOIN comidas_tipos ct ON ct.id = c.id_comida_tipo
+             WHERE LOWER(ct.nombre) = LOWER(:typeName) AND c.activa = 1
+             ORDER BY c.nombre ASC`,
+            { typeName }
+        );
+        return rows as unknown as IFood[];
+    },
+
     /** Find by ID */
     async findById(id: number | string, exec: any = db): Promise<IFood | undefined> {
         const [rows] = await exec.execute(

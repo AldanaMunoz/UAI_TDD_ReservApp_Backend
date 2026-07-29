@@ -71,6 +71,31 @@ export async function create(data: ISeason): Promise<ISeason> {
     return created;
 }
 
+export async function findOrCreateStationId(name: string): Promise<number> {
+    const normalizedName = name.trim();
+    const [existing] = await pool.execute<RowDataPacket[]>(
+        `SELECT id FROM estaciones WHERE LOWER(nombre) = LOWER(?) LIMIT 1`,
+        [normalizedName]
+    );
+    if (existing.length) return Number(existing[0].id);
+
+    try {
+        const [result] = await pool.execute<ResultSetHeader>(
+            `INSERT INTO estaciones (nombre) VALUES (?)`,
+            [normalizedName]
+        );
+        return result.insertId;
+    } catch (error: any) {
+        if (error?.code !== "ER_DUP_ENTRY") throw error;
+        const [rows] = await pool.execute<RowDataPacket[]>(
+            `SELECT id FROM estaciones WHERE LOWER(nombre) = LOWER(?) LIMIT 1`,
+            [normalizedName]
+        );
+        if (!rows.length) throw error;
+        return Number(rows[0].id);
+    }
+}
+
 export async function updatePartial(
     id: number,
     patch: Partial<ISeason>
@@ -132,6 +157,7 @@ export default {
     find,
     findById,
     create,
+    findOrCreateStationId,
     updatePartial,
     hardDelete,
 };

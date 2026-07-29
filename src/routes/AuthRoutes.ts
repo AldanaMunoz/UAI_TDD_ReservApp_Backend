@@ -237,4 +237,11 @@ AuthRoutes.post(
   controllers.logoutFirebase,
 );
 
+AuthRoutes.get(
+  "/me",
+  authenticateFirebase,
+  attachLocalUser,
+  controllers.getCurrentAuthenticatedUser,
+);
+
 export default AuthRoutes;

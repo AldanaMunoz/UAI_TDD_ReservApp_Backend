@@ -1,6 +1,7 @@
 // src/routes/FoodTypeRoutes.ts
 import express from "express";
 import FoodTypeController from "../controllers/FoodTypeController";
+import { requireRole } from "../middleware/AuthMiddleware";
 import validationMiddleware from "../middleware/ValidatorMiddleware";
 import {
     createFoodTypeValidationSchema,
@@ -82,6 +83,7 @@ FoodTypeRoutes.get(
  */
 FoodTypeRoutes.post(
     "/",
+    requireRole("Administrador"),
     validationMiddleware(createFoodTypeValidationSchema),
     FoodTypeController.createFoodType
 );
@@ -121,6 +123,7 @@ FoodTypeRoutes.post(
  */
 FoodTypeRoutes.patch(
     "/:id",
+    requireRole("Administrador"),
     validationMiddleware(updateFoodTypeValidationSchema),
     FoodTypeController.updateFoodType
 );
@@ -146,6 +149,7 @@ FoodTypeRoutes.patch(
  */
 FoodTypeRoutes.delete(
     "/hard/:id",
+    requireRole("Administrador"),
     FoodTypeController.hardDeleteFoodType
 );
 

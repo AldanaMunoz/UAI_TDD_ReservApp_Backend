@@ -54,6 +54,7 @@ export const updateUserBundleValidationSchema = Joi.object({
     user: updateUserValidationSchema.optional(),
     person: updatePersonValidationSchema.optional(),
     employee: updateEmployeeValidationSchema.optional(),
+    roles: Joi.array().items(Joi.number().integer().positive()).min(1).unique().optional(),
 })
     .min(1) // obliga a que venga al menos un bloque
     .options({

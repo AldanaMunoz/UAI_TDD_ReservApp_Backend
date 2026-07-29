@@ -4,6 +4,21 @@ import type { IWeeklyPlanning } from "../interfaces/WeeklyPlanningInterface";
 
 const TABLE = "planificaciones_semanales";
 
+export interface WeeklyPlanningWeek {
+  id: number;
+  seasonId: number;
+  weekNumber: number;
+  startDate: string;
+  endDate: string;
+}
+
+export interface DayMealAssignments {
+  entradaId: number | null;
+  principalId: number | null;
+  alternativoId: number | null;
+  vegetarianoId: number | null;
+}
+
 const WeeklyPlanningModel = {
   async find(exec: any = db): Promise<IWeeklyPlanning[]> {
     const [rows] = await exec.execute(
@@ -34,6 +49,61 @@ const WeeklyPlanningModel = {
 
     const list = rows as IWeeklyPlanning[];
     return list.length ? list[0] : undefined;
+  },
+
+  async findWeeksBySeason(seasonId: number, exec: any = db): Promise<WeeklyPlanningWeek[]> {
+    const [rows] = await exec.execute(
+      `SELECT
+        MIN(id) AS id,
+        id_temporada AS seasonId,
+        nro_semana AS weekNumber,
+        DATE_FORMAT(MIN(fecha), '%Y-%m-%d') AS startDate,
+        DATE_FORMAT(MAX(fecha), '%Y-%m-%d') AS endDate
+      FROM ${TABLE}
+      WHERE id_temporada = :seasonId
+      GROUP BY id_temporada, nro_semana
+      ORDER BY nro_semana ASC`,
+      { seasonId }
+    );
+    return rows as WeeklyPlanningWeek[];
+  },
+
+  async findMealAssignments(
+    seasonId: number,
+    weekNumber: number,
+    exec: any = db
+  ): Promise<Record<number, DayMealAssignments>> {
+    const [rows] = await exec.execute(
+      `SELECT
+        ps.dia_semana AS weekDay,
+        cps.id_comida_entrada AS entradaId,
+        cps.id_comida_principal AS principalId,
+        cps.id_comida_alternativo AS alternativoId,
+        cps.id_comida_vegetariana AS vegetarianoId
+      FROM ${TABLE} ps
+      LEFT JOIN comidas_planificacion_semanal cps
+        ON cps.id = (
+          SELECT MAX(latest.id)
+          FROM comidas_planificacion_semanal latest
+          WHERE latest.id_planificacion_semanal = ps.id
+        )
+      WHERE ps.id_temporada = :seasonId
+        AND ps.nro_semana = :weekNumber
+      ORDER BY ps.dia_semana ASC, ps.id DESC`,
+      { seasonId, weekNumber }
+    );
+
+    const result: Record<number, DayMealAssignments> = {};
+    for (const row of rows as any[]) {
+      if (result[row.weekDay]) continue;
+      result[row.weekDay] = {
+        entradaId: row.entradaId ?? null,
+        principalId: row.principalId ?? null,
+        alternativoId: row.alternativoId ?? null,
+        vegetarianoId: row.vegetarianoId ?? null,
+      };
+    }
+    return result;
   },
 
   async create(data: IWeeklyPlanning, exec: any = db): Promise<IWeeklyPlanning | undefined> {

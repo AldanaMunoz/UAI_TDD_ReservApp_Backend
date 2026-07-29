@@ -1,6 +1,7 @@
 node_modules/
 dist/
 coverage/
+.test-uploads/
 
 .env
 .env.*
@@ -11,13 +12,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-src/temp/*
-!src/temp/prueba_software_caja_blanca.ts
-
-uploads/*
-!uploads/.gitkeep
-!uploads/foods/
-!uploads/foods/.gitkeep
 
 # Firebase service account credentials
 *firebase-adminsdk*.json

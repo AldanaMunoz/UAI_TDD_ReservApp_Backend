@@ -37,7 +37,10 @@ export async function getSeasonById(req: Request, res: Response) {
 
 export async function createSeason(req: Request, res: Response) {
     try {
-        const { stationId, year, startDate, endDate } = req.body as Partial<ISeason>;
+        const { year, startDate, endDate } = req.body as Partial<ISeason>;
+        const stationId = req.body.stationId
+            ? Number(req.body.stationId)
+            : await SeasonModel.findOrCreateStationId(String(req.body.name));
 
         // Seguridad extra (además del Joi)
         if (!stationId || year === undefined || !startDate || !endDate) {

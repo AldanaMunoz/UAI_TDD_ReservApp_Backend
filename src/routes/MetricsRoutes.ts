@@ -1,0 +1,25 @@
+import { Router } from "express";
+import Metrics from "../controllers/MetricsController";
+
+const router = Router();
+router.get("/asistencia", Metrics.getAttendance);
+router.get("/asistencia/temporada", Metrics.getAttendanceSeason);
+router.get("/asistencia/mes", Metrics.getAttendanceMonth);
+router.get("/asistencia/dia", Metrics.getAttendanceDay);
+router.get("/asistencia/exportar", Metrics.exportAttendance);
+router.get("/detalle-asistencia", Metrics.getAttendanceSeason);
+router.get("/reservas-por-dia", Metrics.getReservationsByDay);
+router.get("/reservas-por-dia/temporada", Metrics.getReservationsSeason);
+router.get("/reservas-por-dia/detalle", Metrics.getReservationsDayDetail);
+router.get("/reservas-por-dia/fecha", Metrics.getReservationsDate);
+router.get("/preferencias", Metrics.getPreferences);
+router.get("/preferencias/temporada", Metrics.getPreferencesSeason);
+router.get("/preferencias/mes", Metrics.getPreferencesMonth);
+router.get("/preferencias/dia", Metrics.getPreferencesDay);
+router.get("/consumo-tipo", Metrics.getConsumption);
+router.get("/consumo-tipo/temporada", Metrics.getConsumptionSeason);
+router.get("/consumo-tipo/mes", Metrics.getConsumptionMonth);
+router.get("/consumo-tipo/dia", Metrics.getConsumptionDay);
+router.get("/top-usuarios", Metrics.getTopUsers);
+router.get("/consumo-usuario", Metrics.getConsumptionUsers);
+export default router;

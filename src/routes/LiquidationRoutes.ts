@@ -26,6 +26,8 @@ const LiquidationRoutes = express.Router();
  *         description: Lista de liquidaciones
  */
 LiquidationRoutes.get("/", LiquidationController.getAllLiquidations);
+LiquidationRoutes.get("/:id/details", LiquidationController.getLiquidationDetails);
+LiquidationRoutes.get("/:id/export/excel", LiquidationController.exportLiquidationExcel);
 
 /**
  * @openapi

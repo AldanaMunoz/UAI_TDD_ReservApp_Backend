@@ -21,6 +21,14 @@ const WeeklyPlanningRoutes = express.Router();
  */
 WeeklyPlanningRoutes.get("/", WeeklyPlanningController.getAllWeeklyPlannings);
 
+WeeklyPlanningRoutes.get("/by-season/:seasonId", WeeklyPlanningController.getWeeklyPlanningsBySeason);
+WeeklyPlanningRoutes.post("/generate", WeeklyPlanningController.generateWeeklyPlannings);
+WeeklyPlanningRoutes.get(
+  "/meal-assignments/:seasonId/:weekNumber",
+  WeeklyPlanningController.getMealAssignments
+);
+WeeklyPlanningRoutes.post("/meal-assignments", WeeklyPlanningController.saveMealAssignments);
+
 /**
  * @openapi
  * /weekly-plannings/{id}:
