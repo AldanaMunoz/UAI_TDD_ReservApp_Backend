@@ -11,8 +11,8 @@ const foodImageUpload = multer({
     },
     fileFilter: (_req, file, cb) => {
         const extension = path.extname(file.originalname).toLowerCase();
-        if (file.mimetype !== "image/jpeg" || ![".jpg", ".jpeg"].includes(extension)) {
-            return cb(new Error("Solo se permiten imagenes JPG"));
+        if (![".jpg", ".jpeg"].includes(extension)) {
+            return cb(new Error("Extension no permitida: solo se aceptan archivos .jpg o .jpeg"));
         }
 
         return cb(null, true);
@@ -32,7 +32,7 @@ export function uploadFoodImage(req: Request, res: Response, next: NextFunction)
                     bytes[bytes.length - 2] === 0xff &&
                     bytes[bytes.length - 1] === 0xd9;
                 if (!hasJpegSignature) {
-                    return res.status(400).json({ message: "El archivo no contiene una imagen JPEG valida" });
+                    return res.status(400).json({ message: "La extension es .jpg/.jpeg, pero el contenido real no es JPEG. Converti la imagen a JPG antes de subirla." });
                 }
             }
             return next();

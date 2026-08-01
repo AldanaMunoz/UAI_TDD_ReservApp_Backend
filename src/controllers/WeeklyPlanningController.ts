@@ -152,6 +152,8 @@ export async function saveMealAssignments(req: Request, res: Response) {
         principalId: assignment.principalId ?? null,
         alternativoId: assignment.alternativoId ?? null,
         vegetarianoId: assignment.vegetarianoId ?? null,
+        postreId: assignment.postreId ?? null,
+        bebidaId: assignment.bebidaId ?? null,
       };
       const [existingRows] = await conn.execute(
         `SELECT id FROM comidas_planificacion_semanal
@@ -165,15 +167,17 @@ export async function saveMealAssignments(req: Request, res: Response) {
             id_comida_entrada = :entradaId,
             id_comida_principal = :principalId,
             id_comida_alternativo = :alternativoId,
-            id_comida_vegetariana = :vegetarianoId
+            id_comida_vegetariana = :vegetarianoId,
+            id_comida_postre = :postreId,
+            id_comida_bebida = :bebidaId
            WHERE id = :existingId`,
           { ...params, existingId }
         );
       } else {
         await conn.execute(
           `INSERT INTO comidas_planificacion_semanal
-            (id_planificacion_semanal, id_comida_entrada, id_comida_principal, id_comida_alternativo, id_comida_vegetariana)
-           VALUES (:weeklyPlanningId, :entradaId, :principalId, :alternativoId, :vegetarianoId)`,
+            (id_planificacion_semanal, id_comida_entrada, id_comida_principal, id_comida_alternativo, id_comida_vegetariana, id_comida_postre, id_comida_bebida)
+           VALUES (:weeklyPlanningId, :entradaId, :principalId, :alternativoId, :vegetarianoId, :postreId, :bebidaId)`,
           params
         );
       }

@@ -13,6 +13,12 @@ function canAccessUser(req: Request, userId: number) {
   return user?.id === userId || user?.roles?.includes("Administrador");
 }
 
+function parseOptionalFoodId(value: unknown): number | null {
+  if (value === undefined || value === null || value === "") return null;
+  const id = Number(value);
+  return Number.isInteger(id) && id > 0 ? id : NaN;
+}
+
 const menuSelect = `SELECT
   ps.id AS planificacion_id,
   DATE_FORMAT(ps.fecha, '%Y-%m-%d') AS fecha,
@@ -28,7 +34,13 @@ const menuSelect = `SELECT
   alternativo.url_imagen AS alternativo_imagen,
   cps.id_comida_vegetariana AS vegetariana_id,
   vegetariana.nombre AS vegetariana_nombre,
-  vegetariana.url_imagen AS vegetariana_imagen
+  vegetariana.url_imagen AS vegetariana_imagen,
+  cps.id_comida_postre AS postre_id,
+  postre.nombre AS postre_nombre,
+  postre.url_imagen AS postre_imagen,
+  cps.id_comida_bebida AS bebida_id,
+  bebida.nombre AS bebida_nombre,
+  bebida.url_imagen AS bebida_imagen
  FROM planificaciones_semanales ps
  INNER JOIN comidas_planificacion_semanal cps ON cps.id = (
    SELECT MAX(latest.id) FROM comidas_planificacion_semanal latest
@@ -37,7 +49,9 @@ const menuSelect = `SELECT
  LEFT JOIN comidas entrada ON entrada.id = cps.id_comida_entrada
  LEFT JOIN comidas principal ON principal.id = cps.id_comida_principal
  LEFT JOIN comidas alternativo ON alternativo.id = cps.id_comida_alternativo
- LEFT JOIN comidas vegetariana ON vegetariana.id = cps.id_comida_vegetariana`;
+ LEFT JOIN comidas vegetariana ON vegetariana.id = cps.id_comida_vegetariana
+ LEFT JOIN comidas postre ON postre.id = cps.id_comida_postre
+ LEFT JOIN comidas bebida ON bebida.id = cps.id_comida_bebida`;
 
 const reservationSelect = `SELECT
   r.id,
@@ -106,8 +120,20 @@ export async function createReservation(req: Request, res: Response) {
     if (![menu.principal_id, menu.alternativo_id, menu.vegetariana_id].includes(mainFoodId)) {
       return res.status(400).json({ message: "El plato principal no pertenece al menu del dia" });
     }
-    if (req.body.id_comida_entrada && Number(req.body.id_comida_entrada) !== menu.entrada_id) {
+    const starterId = parseOptionalFoodId(req.body.id_comida_entrada);
+    const dessertId = parseOptionalFoodId(req.body.id_comida_postre);
+    const drinkId = parseOptionalFoodId(req.body.id_comida_bebida);
+    if ([starterId, dessertId, drinkId].some(Number.isNaN)) {
+      return res.status(400).json({ message: "Las comidas seleccionadas deben ser validas" });
+    }
+    if (starterId && starterId !== menu.entrada_id) {
       return res.status(400).json({ message: "La entrada no pertenece al menu del dia" });
+    }
+    if (dessertId && dessertId !== menu.postre_id) {
+      return res.status(400).json({ message: "El postre no pertenece al menu del dia" });
+    }
+    if (drinkId && drinkId !== menu.bebida_id) {
+      return res.status(400).json({ message: "La bebida no pertenece al menu del dia" });
     }
 
     const [existing] = await db.execute(
@@ -125,10 +151,10 @@ export async function createReservation(req: Request, res: Response) {
       {
         userId,
         fecha: `${fecha} 00:00:00`,
-        starterId: req.body.id_comida_entrada || null,
+        starterId,
         mainFoodId,
-        dessertId: req.body.id_comida_postre || null,
-        drinkId: req.body.id_comida_bebida || null,
+        dessertId,
+        drinkId,
         qrCode: `QR-${userId}-${fecha}-${randomUUID()}`,
       }
     );

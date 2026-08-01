@@ -17,6 +17,8 @@ export interface DayMealAssignments {
   principalId: number | null;
   alternativoId: number | null;
   vegetarianoId: number | null;
+  postreId: number | null;
+  bebidaId: number | null;
 }
 
 const WeeklyPlanningModel = {
@@ -79,7 +81,9 @@ const WeeklyPlanningModel = {
         cps.id_comida_entrada AS entradaId,
         cps.id_comida_principal AS principalId,
         cps.id_comida_alternativo AS alternativoId,
-        cps.id_comida_vegetariana AS vegetarianoId
+        cps.id_comida_vegetariana AS vegetarianoId,
+        cps.id_comida_postre AS postreId,
+        cps.id_comida_bebida AS bebidaId
       FROM ${TABLE} ps
       LEFT JOIN comidas_planificacion_semanal cps
         ON cps.id = (
@@ -101,6 +105,8 @@ const WeeklyPlanningModel = {
         principalId: row.principalId ?? null,
         alternativoId: row.alternativoId ?? null,
         vegetarianoId: row.vegetarianoId ?? null,
+        postreId: row.postreId ?? null,
+        bebidaId: row.bebidaId ?? null,
       };
     }
     return result;

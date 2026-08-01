@@ -22,13 +22,13 @@ describe("uploadFoodImage", () => {
     expect(response.body).toEqual({ size: validJpeg.length, field: "image" });
   });
 
-  test("rechaza contenido falso aunque use nombre y MIME de JPEG", async () => {
+  test("rechaza contenido falso aunque use extension jpg y MIME de JPEG", async () => {
     const response = await request(testApp())
       .patch("/image")
       .attach("image", Buffer.from("not-a-jpeg"), { filename: "food.jpg", contentType: "image/jpeg" });
 
     expect(response.status).toBe(400);
-    expect(response.body.message).toMatch(/no contiene una imagen JPEG valida/i);
+    expect(response.body.message).toMatch(/contenido real no es JPEG/i);
   });
 
   test("rechaza extensiones distintas de jpg y jpeg", async () => {
@@ -37,7 +37,7 @@ describe("uploadFoodImage", () => {
       .attach("image", validJpeg, { filename: "food.png", contentType: "image/jpeg" });
 
     expect(response.status).toBe(400);
-    expect(response.body.message).toMatch(/solo se permiten imagenes JPG/i);
+    expect(response.body.message).toMatch(/solo se aceptan archivos \.jpg o \.jpeg/i);
   });
 
   test("rechaza archivos mayores de 5 MB", async () => {
